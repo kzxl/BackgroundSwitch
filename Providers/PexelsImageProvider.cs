@@ -1,6 +1,5 @@
 using System.IO;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text.Json;
 
 namespace BackgroundSwitch.Providers;
@@ -53,14 +52,13 @@ public class PexelsImageProvider : IImageProvider
                     var imageUrl = imageUrlElement.GetString();
                     if (!string.IsNullOrEmpty(imageUrl))
                     {
-                        return await DownloadImageAsync(imageUrl, cancellationToken);
+                        return await DownloadStreamToDiskAsync(imageUrl, cancellationToken);
                     }
                 }
             }
         }
         catch (OperationCanceledException)
         {
-            // Propagate or handle cancellation cleanly
             throw;
         }
         catch (Exception ex)
@@ -71,34 +69,45 @@ public class PexelsImageProvider : IImageProvider
         return null;
     }
 
-    private static async Task<string?> DownloadImageAsync(string url, CancellationToken cancellationToken)
+    private static async Task<string?> DownloadStreamToDiskAsync(string url, CancellationToken cancellationToken)
     {
-        using var response = await SharedHttpClient.GetAsync(url, cancellationToken);
+        using var response = await SharedHttpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
         response.EnsureSuccessStatusCode();
 
-        var tempPath = Path.Combine(Path.GetTempPath(), "BackgroundSwitch");
+        var tempPath = Path.Combine(Path.GetTempPath(), "BackgroundSwitch", "Pexels");
         if (!Directory.Exists(tempPath))
         {
             Directory.CreateDirectory(tempPath);
         }
 
-        // Cleanup old temp image files safely
+        // Cleanup old temp image files safely (keep last 5)
         try
         {
-            foreach (var file in Directory.GetFiles(tempPath, "wallpaper_*.jpg"))
+            var files = Directory.GetFiles(tempPath, "wallpaper_*.jpg")
+                                 .Select(f => new FileInfo(f))
+                                 .OrderByDescending(f => f.LastWriteTimeUtc)
+                                 .Skip(5);
+
+            foreach (var fi in files)
             {
-                try { File.Delete(file); } catch { }
+                try { fi.Delete(); } catch { }
             }
         }
         catch
         {
-            // Ignore folder read race conditions
+            // Ignore folder race conditions
         }
 
         var filePath = Path.Combine(tempPath, $"wallpaper_{Guid.NewGuid():N}.jpg");
-        var imageBytes = await response.Content.ReadAsByteArrayAsync(cancellationToken);
-        await File.WriteAllBytesAsync(filePath, imageBytes, cancellationToken);
+        var tempDownloading = $"{filePath}.tmp";
 
+        await using (var httpStream = await response.Content.ReadAsStreamAsync(cancellationToken))
+        await using (var fileStream = new FileStream(tempDownloading, FileMode.Create, FileAccess.Write, FileShare.None, 81920, true))
+        {
+            await httpStream.CopyToAsync(fileStream, cancellationToken);
+        }
+
+        File.Move(tempDownloading, filePath);
         return filePath;
     }
 }
