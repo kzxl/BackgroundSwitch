@@ -1,6 +1,7 @@
 using System.IO;
 using System.Net.Http;
 using System.Text.Json;
+using BackgroundSwitch.Services;
 
 namespace BackgroundSwitch.Providers;
 
@@ -24,13 +25,16 @@ public class BingDailyImageProvider : IImageProvider
             var todayStr = DateTime.UtcNow.ToString("yyyyMMdd");
             var cachedTodayFile = Path.Combine(tempDir, $"bing_{todayStr}.jpg");
 
-            // If already downloaded today, reuse it directly (Zero network)
+            // If already downloaded today and not blacklisted, reuse it directly
             if (File.Exists(cachedTodayFile) && new FileInfo(cachedTodayFile).Length > 10000)
             {
-                return cachedTodayFile;
+                if (!BlacklistManager.Instance.IsBlacklisted(cachedTodayFile))
+                {
+                    return cachedTodayFile;
+                }
             }
 
-            const string archiveApiUrl = "https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=en-US";
+            const string archiveApiUrl = "https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=8&mkt=en-US";
             using var request = new HttpRequestMessage(HttpMethod.Get, archiveApiUrl);
             using var response = await SharedHttpClient.SendAsync(request, cancellationToken);
             response.EnsureSuccessStatusCode();
@@ -41,23 +45,27 @@ public class BingDailyImageProvider : IImageProvider
 
             if (root.TryGetProperty("images", out var images) && images.GetArrayLength() > 0)
             {
-                var imgObj = images[0];
-                string? urlSuffix = null;
+                foreach (var imgObj in images.EnumerateArray())
+                {
+                    string? urlSuffix = null;
+                    if (imgObj.TryGetProperty("urlbase", out var urlBaseProp))
+                    {
+                        urlSuffix = urlBaseProp.GetString() + "_UHD.jpg";
+                    }
+                    else if (imgObj.TryGetProperty("url", out var urlProp))
+                    {
+                        urlSuffix = urlProp.GetString();
+                    }
 
-                // Prefer UHD if available, else standard url
-                if (imgObj.TryGetProperty("urlbase", out var urlBaseProp))
-                {
-                    urlSuffix = urlBaseProp.GetString() + "_UHD.jpg";
-                }
-                else if (imgObj.TryGetProperty("url", out var urlProp))
-                {
-                    urlSuffix = urlProp.GetString();
-                }
-
-                if (!string.IsNullOrEmpty(urlSuffix))
-                {
-                    var fullImageUrl = urlSuffix.StartsWith("http") ? urlSuffix : $"https://www.bing.com{urlSuffix}";
-                    return await DownloadStreamToDiskAsync(fullImageUrl, cachedTodayFile, cancellationToken);
+                    if (!string.IsNullOrEmpty(urlSuffix))
+                    {
+                        var fullImageUrl = urlSuffix.StartsWith("http") ? urlSuffix : $"https://www.bing.com{urlSuffix}";
+                        if (!BlacklistManager.Instance.IsBlacklisted(fullImageUrl))
+                        {
+                            var targetFile = Path.Combine(tempDir, $"bing_{Guid.NewGuid():N}.jpg");
+                            return await DownloadStreamToDiskAsync(fullImageUrl, targetFile, cancellationToken);
+                        }
+                    }
                 }
             }
         }

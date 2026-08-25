@@ -1,4 +1,5 @@
 using System.IO;
+using BackgroundSwitch.Services;
 
 namespace BackgroundSwitch.Providers;
 
@@ -27,6 +28,7 @@ public class LocalFolderImageProvider : IImageProvider
 
         var files = Directory.EnumerateFiles(_folderPath)
             .Where(f => SupportedExtensions.Contains(Path.GetExtension(f).ToLowerInvariant()))
+            .Where(f => !BlacklistManager.Instance.IsBlacklisted(f))
             .ToList();
 
         if (files.Count == 0)
