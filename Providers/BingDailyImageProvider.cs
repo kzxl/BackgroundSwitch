@@ -25,7 +25,7 @@ public class BingDailyImageProvider : IImageProvider
             var todayStr = DateTime.UtcNow.ToString("yyyyMMdd");
             var cachedTodayFile = Path.Combine(tempDir, $"bing_{todayStr}.jpg");
 
-            // If already downloaded today and not blacklisted, reuse it directly
+            // If already downloaded today and valid (>10KB), reuse it
             if (File.Exists(cachedTodayFile) && new FileInfo(cachedTodayFile).Length > 10000)
             {
                 if (!BlacklistManager.Instance.IsBlacklisted(cachedTodayFile))
@@ -48,13 +48,13 @@ public class BingDailyImageProvider : IImageProvider
                 foreach (var imgObj in images.EnumerateArray())
                 {
                     string? urlSuffix = null;
-                    if (imgObj.TryGetProperty("urlbase", out var urlBaseProp))
-                    {
-                        urlSuffix = urlBaseProp.GetString() + "_UHD.jpg";
-                    }
-                    else if (imgObj.TryGetProperty("url", out var urlProp))
+                    if (imgObj.TryGetProperty("url", out var urlProp))
                     {
                         urlSuffix = urlProp.GetString();
+                    }
+                    else if (imgObj.TryGetProperty("urlbase", out var urlBaseProp))
+                    {
+                        urlSuffix = urlBaseProp.GetString() + "_1920x1080.jpg";
                     }
 
                     if (!string.IsNullOrEmpty(urlSuffix))
@@ -63,7 +63,11 @@ public class BingDailyImageProvider : IImageProvider
                         if (!BlacklistManager.Instance.IsBlacklisted(fullImageUrl))
                         {
                             var targetFile = Path.Combine(tempDir, $"bing_{Guid.NewGuid():N}.jpg");
-                            return await DownloadStreamToDiskAsync(fullImageUrl, targetFile, cancellationToken);
+                            var downloadedPath = await DownloadStreamToDiskAsync(fullImageUrl, targetFile, cancellationToken);
+                            if (!string.IsNullOrEmpty(downloadedPath))
+                            {
+                                return downloadedPath;
+                            }
                         }
                     }
                 }
@@ -83,22 +87,30 @@ public class BingDailyImageProvider : IImageProvider
 
     private static async Task<string?> DownloadStreamToDiskAsync(string url, string targetPath, CancellationToken cancellationToken)
     {
-        using var response = await SharedHttpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-        response.EnsureSuccessStatusCode();
-
-        var tempDownloadingFile = $"{targetPath}.tmp";
-        await using (var httpStream = await response.Content.ReadAsStreamAsync(cancellationToken))
-        await using (var fileStream = new FileStream(tempDownloadingFile, FileMode.Create, FileAccess.Write, FileShare.None, 81920, true))
+        try
         {
-            await httpStream.CopyToAsync(fileStream, cancellationToken);
-        }
+            using var response = await SharedHttpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            if (!response.IsSuccessStatusCode) return null;
 
-        if (File.Exists(targetPath))
+            var tempDownloadingFile = $"{targetPath}.tmp";
+            await using (var httpStream = await response.Content.ReadAsStreamAsync(cancellationToken))
+            await using (var fileStream = new FileStream(tempDownloadingFile, FileMode.Create, FileAccess.Write, FileShare.None, 81920, true))
+            {
+                await httpStream.CopyToAsync(fileStream, cancellationToken);
+            }
+
+            if (File.Exists(targetPath))
+            {
+                try { File.Delete(targetPath); } catch { }
+            }
+
+            File.Move(tempDownloadingFile, targetPath);
+            return targetPath;
+        }
+        catch (Exception ex)
         {
-            try { File.Delete(targetPath); } catch { }
+            System.Diagnostics.Debug.WriteLine($"[BingDailyImageProvider] Download error: {ex.Message}");
+            return null;
         }
-
-        File.Move(tempDownloadingFile, targetPath);
-        return targetPath;
     }
 }

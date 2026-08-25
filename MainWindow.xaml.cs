@@ -386,14 +386,67 @@ public partial class MainWindow : Window
 
     private async void BtnChangeNow_Click(object sender, RoutedEventArgs e)
     {
+        var originalText = btnChangeNow.Content?.ToString() ?? "🔄 Đổi hình nền ngay";
         try
         {
-            await _scheduler.ChangeWallpaperAsync();
+            btnChangeNow.IsEnabled = false;
+            btnChangeNow.Content = "⏳ Đang đổi...";
+
+            // Sync current UI selections into settings before changing
+            SyncUiToSettings();
+
+            _scheduler.UpdateSettings(_settings);
+            bool success = await _scheduler.ChangeWallpaperAsync();
+
+            if (!success)
+            {
+                System.Windows.MessageBox.Show(
+                    "Không thể đổi hình nền từ nguồn đã chọn.\n- Nếu dùng Local Folder: Hãy chọn thư mục có chứa ảnh (.jpg, .png).\n- Nếu dùng Online (Bing/Reddit/Wallhaven): Hãy kiểm tra kết nối mạng internet.",
+                    "BackgroundSwitch", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
         catch (Exception ex)
         {
             System.Windows.MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
+        finally
+        {
+            btnChangeNow.IsEnabled = true;
+            btnChangeNow.Content = originalText;
+        }
+    }
+
+    private void SyncUiToSettings()
+    {
+        // 1. Mode
+        if (rbModePerMonitor.IsChecked == true) _settings.Mode = WallpaperMode.PerMonitor;
+        else if (rbModeSpan.IsChecked == true) _settings.Mode = WallpaperMode.Span;
+        else _settings.Mode = WallpaperMode.Synced;
+
+        // 2. Scale
+        if (cbScale.SelectedItem is ComboBoxItem selectedScale &&
+            Enum.TryParse<WallpaperScale>(selectedScale.Tag?.ToString(), out var scaleVal))
+        {
+            _settings.Scale = scaleVal;
+        }
+
+        // 3. Source
+        if (rbSourceReddit.IsChecked == true) _settings.GlobalSource.Type = "Reddit";
+        else if (rbSourceWallhaven.IsChecked == true) _settings.GlobalSource.Type = "Wallhaven";
+        else if (rbSourceNasa.IsChecked == true) _settings.GlobalSource.Type = "Nasa";
+        else if (rbSourceLocal.IsChecked == true) _settings.GlobalSource.Type = "Local";
+        else if (rbSourcePexels.IsChecked == true) _settings.GlobalSource.Type = "Pexels";
+        else if (rbSourceUnsplash.IsChecked == true) _settings.GlobalSource.Type = "Unsplash";
+        else _settings.GlobalSource.Type = "BingDaily";
+
+        _settings.GlobalSource.RedditSubreddit = string.IsNullOrWhiteSpace(txtGlobalRedditSub.Text) ? "wallpapers" : txtGlobalRedditSub.Text.Trim();
+        _settings.GlobalSource.WallhavenQuery = string.IsNullOrWhiteSpace(txtGlobalWallhavenQuery.Text) ? "nature" : txtGlobalWallhavenQuery.Text.Trim();
+        _settings.GlobalSource.WallhavenApiKey = txtGlobalWallhavenApiKey.Text.Trim();
+        _settings.GlobalSource.LocalFolderPath = txtGlobalFolderPath.Text.Trim();
+        _settings.GlobalSource.PexelsApiKey = txtGlobalPexelsApiKey.Text.Trim();
+        _settings.GlobalSource.PexelsQuery = string.IsNullOrWhiteSpace(txtGlobalPexelsQuery.Text) ? "nature" : txtGlobalPexelsQuery.Text.Trim();
+        _settings.GlobalSource.UnsplashQuery = string.IsNullOrWhiteSpace(txtGlobalUnsplashQuery.Text) ? "landscape" : txtGlobalUnsplashQuery.Text.Trim();
+        _settings.GlobalSource.UnsplashApiKey = txtGlobalUnsplashApiKey.Text.Trim();
     }
 
     private static void ManageAutoStart(bool enable)

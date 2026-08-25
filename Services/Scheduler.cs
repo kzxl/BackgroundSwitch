@@ -119,7 +119,7 @@ public class Scheduler : IDisposable
         }
     }
 
-    public async Task ChangeWallpaperAsync()
+    public async Task<bool> ChangeWallpaperAsync()
     {
         try
         {
@@ -131,10 +131,12 @@ public class Scheduler : IDisposable
             // Set scaling position
             WallpaperManager.SetPosition(_settings.Scale);
 
+            bool anySuccess = false;
+
             if (_settings.Mode == WallpaperMode.PerMonitor && _settings.Monitors.Count > 0)
             {
                 var currentMonitors = WallpaperManager.GetMonitors();
-                var tasks = new List<Task>();
+                var tasks = new List<Task<bool>>();
 
                 foreach (var monitor in currentMonitors)
                 {
@@ -151,14 +153,20 @@ public class Scheduler : IDisposable
                         var imgPath = await provider.GetNextImagePathAsync(token);
                         if (!string.IsNullOrEmpty(imgPath) && !token.IsCancellationRequested)
                         {
-                            WallpaperManager.SetWallpaper(monId, imgPath);
-                            CurrentWallpapers[monId] = imgPath;
-                            History.Push(imgPath);
+                            bool ok = WallpaperManager.SetWallpaper(monId, imgPath);
+                            if (ok)
+                            {
+                                CurrentWallpapers[monId] = imgPath;
+                                History.Push(imgPath);
+                                return true;
+                            }
                         }
+                        return false;
                     }, token));
                 }
 
-                await Task.WhenAll(tasks);
+                var results = await Task.WhenAll(tasks);
+                anySuccess = results.Any(r => r);
             }
             else
             {
@@ -167,22 +175,36 @@ public class Scheduler : IDisposable
 
                 if (!string.IsNullOrEmpty(imagePath) && !token.IsCancellationRequested)
                 {
-                    WallpaperManager.SetWallpaper(null, imagePath);
-                    CurrentWallpapers["global"] = imagePath;
-                    History.Push(imagePath);
+                    bool ok = WallpaperManager.SetWallpaper(null, imagePath);
+                    if (ok)
+                    {
+                        CurrentWallpapers["global"] = imagePath;
+                        History.Push(imagePath);
+                        anySuccess = true;
+                    }
+                }
+                else
+                {
+                    OnError?.Invoke("Không thể tải ảnh từ nguồn đã chọn. Vui lòng kiểm tra lại cấu hình hoặc kết nối mạng.");
                 }
             }
 
-            OnWallpaperChanged?.Invoke();
+            if (anySuccess)
+            {
+                OnWallpaperChanged?.Invoke();
+            }
+
+            return anySuccess;
         }
         catch (OperationCanceledException)
         {
-            // Expected cancellation
+            return false;
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"[Scheduler] Error during wallpaper change: {ex.Message}");
             OnError?.Invoke(ex.Message);
+            return false;
         }
     }
 
