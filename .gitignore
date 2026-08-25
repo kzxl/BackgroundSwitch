@@ -1,0 +1,18 @@
+# Build results
+[Bb]in/
+[Oo]bj/
+[Pp]ublish/
+
+# Visual Studio / Rider / VS Code cache
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Windows thumbnail cache
+Thumbs.db
+ehthumbs.db
+Desktop.ini
