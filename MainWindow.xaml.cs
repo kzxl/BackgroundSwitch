@@ -1,8 +1,7 @@
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Forms;
-using System.Windows.Input;
 using BackgroundSwitch.Models;
 using BackgroundSwitch.Services;
 using Microsoft.Win32;
@@ -11,89 +10,139 @@ namespace BackgroundSwitch;
 
 public partial class MainWindow : Window
 {
-    private AppSettings _settings;
+    private readonly AppSettings _settings;
     private readonly Scheduler _scheduler;
-    private bool _isExplicitClose;
+    private bool _isRealClose;
 
-    public MainWindow()
+    public MainWindow(AppSettings settings, Scheduler scheduler)
     {
         InitializeComponent();
+        _settings = settings ?? throw new ArgumentNullException(nameof(settings));
+        _scheduler = scheduler ?? throw new ArgumentNullException(nameof(scheduler));
 
-        // Set default icon for tray
-        MyNotifyIcon.Icon = System.Drawing.SystemIcons.Information;
-
-        _settings = AppSettings.Load();
         LoadSettingsToUI();
-
-        _scheduler = new Scheduler(_settings);
-        _scheduler.OnError += msg =>
-        {
-            System.Windows.Application.Current.Dispatcher.Invoke(() =>
-            {
-                System.Windows.MessageBox.Show(msg, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            });
-        };
-        _scheduler.Start();
     }
 
     private void LoadSettingsToUI()
     {
-        if (string.Equals(_settings.SourceType, "Pexels", StringComparison.OrdinalIgnoreCase))
+        // 1. Monitor Mode
+        switch (_settings.Mode)
         {
-            rbPexels.IsChecked = true;
-            panelLocal.Visibility = Visibility.Collapsed;
-            panelPexels.Visibility = Visibility.Visible;
+            case WallpaperMode.PerMonitor:
+                rbModePerMonitor.IsChecked = true;
+                cardPerMonitor.Visibility = Visibility.Visible;
+                break;
+            case WallpaperMode.Span:
+                rbModeSpan.IsChecked = true;
+                cardPerMonitor.Visibility = Visibility.Collapsed;
+                break;
+            default:
+                rbModeSynced.IsChecked = true;
+                cardPerMonitor.Visibility = Visibility.Collapsed;
+                break;
+        }
+
+        // 2. Scale Selection
+        var scaleTag = _settings.Scale.ToString();
+        foreach (ComboBoxItem item in cbScale.Items)
+        {
+            if (string.Equals(item.Tag?.ToString(), scaleTag, StringComparison.OrdinalIgnoreCase))
+            {
+                cbScale.SelectedItem = item;
+                break;
+            }
+        }
+
+        // 3. Global Source
+        var sourceType = _settings.GlobalSource.Type;
+        if (string.Equals(sourceType, "Local", StringComparison.OrdinalIgnoreCase))
+        {
+            rbSourceLocal.IsChecked = true;
+            panelGlobalLocal.Visibility = Visibility.Visible;
+            panelGlobalPexels.Visibility = Visibility.Collapsed;
+            txtBingInfo.Visibility = Visibility.Collapsed;
+        }
+        else if (string.Equals(sourceType, "Pexels", StringComparison.OrdinalIgnoreCase))
+        {
+            rbSourcePexels.IsChecked = true;
+            panelGlobalLocal.Visibility = Visibility.Collapsed;
+            panelGlobalPexels.Visibility = Visibility.Visible;
+            txtBingInfo.Visibility = Visibility.Collapsed;
         }
         else
         {
-            rbLocal.IsChecked = true;
-            panelLocal.Visibility = Visibility.Visible;
-            panelPexels.Visibility = Visibility.Collapsed;
+            rbSourceBing.IsChecked = true;
+            panelGlobalLocal.Visibility = Visibility.Collapsed;
+            panelGlobalPexels.Visibility = Visibility.Collapsed;
+            txtBingInfo.Visibility = Visibility.Visible;
         }
 
-        txtFolderPath.Text = _settings.LocalFolderPath;
-        txtApiKey.Text = _settings.PexelsApiKey;
-        txtQuery.Text = _settings.PexelsQuery;
-        txtInterval.Text = _settings.IntervalMinutes.ToString();
+        txtGlobalFolderPath.Text = _settings.GlobalSource.LocalFolderPath;
+        txtGlobalPexelsApiKey.Text = _settings.GlobalSource.PexelsApiKey;
+        txtGlobalPexelsQuery.Text = _settings.GlobalSource.PexelsQuery;
+
+        // 4. Populate Monitors List
+        var monitors = WallpaperManager.GetMonitors();
+        listMonitors.ItemsSource = monitors;
+
+        // 5. General Settings
+        txtInterval.Text = Math.Max(1, _settings.IntervalMinutes).ToString();
         chkAutoStart.IsChecked = _settings.AutoStart;
-
-        var args = Environment.GetCommandLineArgs();
-        if (args.Length > 1 && args[1] == "--hidden")
-        {
-            WindowState = WindowState.Minimized;
-        }
     }
 
-    private void Source_Changed(object sender, RoutedEventArgs e)
+    private void Mode_Changed(object sender, RoutedEventArgs e)
     {
-        if (panelLocal == null || panelPexels == null) return;
+        if (cardPerMonitor == null) return;
 
-        if (rbPexels.IsChecked == true)
+        if (rbModePerMonitor.IsChecked == true)
         {
-            panelLocal.Visibility = Visibility.Collapsed;
-            panelPexels.Visibility = Visibility.Visible;
+            cardPerMonitor.Visibility = Visibility.Visible;
         }
         else
         {
-            panelLocal.Visibility = Visibility.Visible;
-            panelPexels.Visibility = Visibility.Collapsed;
+            cardPerMonitor.Visibility = Visibility.Collapsed;
         }
     }
 
-    private void BtnBrowse_Click(object sender, RoutedEventArgs e)
+    private void Scale_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (cbScale?.SelectedItem is ComboBoxItem selectedItem &&
+            Enum.TryParse<WallpaperScale>(selectedItem.Tag?.ToString(), out var scale))
+        {
+            _settings.Scale = scale;
+        }
+    }
+
+    private void GlobalSource_Changed(object sender, RoutedEventArgs e)
+    {
+        if (panelGlobalLocal == null || panelGlobalPexels == null || txtBingInfo == null) return;
+
+        if (rbSourceLocal.IsChecked == true)
+        {
+            panelGlobalLocal.Visibility = Visibility.Visible;
+            panelGlobalPexels.Visibility = Visibility.Collapsed;
+            txtBingInfo.Visibility = Visibility.Collapsed;
+        }
+        else if (rbSourcePexels.IsChecked == true)
+        {
+            panelGlobalLocal.Visibility = Visibility.Collapsed;
+            panelGlobalPexels.Visibility = Visibility.Visible;
+            txtBingInfo.Visibility = Visibility.Collapsed;
+        }
+        else
+        {
+            panelGlobalLocal.Visibility = Visibility.Collapsed;
+            panelGlobalPexels.Visibility = Visibility.Collapsed;
+            txtBingInfo.Visibility = Visibility.Visible;
+        }
+    }
+
+    private void BtnBrowseGlobalFolder_Click(object sender, RoutedEventArgs e)
     {
         using var dialog = new FolderBrowserDialog();
         if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
         {
-            txtFolderPath.Text = dialog.SelectedPath;
-        }
-    }
-
-    private void TextBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
-    {
-        if (e.Key == Key.Enter)
-        {
-            BtnSave_Click(sender, e);
+            txtGlobalFolderPath.Text = dialog.SelectedPath;
         }
     }
 
@@ -105,24 +154,73 @@ public partial class MainWindow : Window
         }
         else
         {
-            System.Windows.MessageBox.Show("Interval must be a valid positive number (minutes).", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+            System.Windows.MessageBox.Show("Tần suất đổi phải là số nguyên dương (phút).", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 
-        _settings.SourceType = rbPexels.IsChecked == true ? "Pexels" : "Local";
-        _settings.LocalFolderPath = txtFolderPath.Text.Trim();
-        _settings.PexelsApiKey = txtApiKey.Text.Trim();
-        _settings.PexelsQuery = txtQuery.Text.Trim();
-        _settings.AutoStart = chkAutoStart.IsChecked ?? false;
+        // 1. Save Mode
+        if (rbModePerMonitor.IsChecked == true)
+        {
+            _settings.Mode = WallpaperMode.PerMonitor;
+        }
+        else if (rbModeSpan.IsChecked == true)
+        {
+            _settings.Mode = WallpaperMode.Span;
+        }
+        else
+        {
+            _settings.Mode = WallpaperMode.Synced;
+        }
 
-        _settings.Save();
+        // 2. Save Scale
+        if (cbScale.SelectedItem is ComboBoxItem selectedScale &&
+            Enum.TryParse<WallpaperScale>(selectedScale.Tag?.ToString(), out var scaleVal))
+        {
+            _settings.Scale = scaleVal;
+        }
+
+        // 3. Save Global Source
+        if (rbSourceLocal.IsChecked == true)
+        {
+            _settings.GlobalSource.Type = "Local";
+        }
+        else if (rbSourcePexels.IsChecked == true)
+        {
+            _settings.GlobalSource.Type = "Pexels";
+        }
+        else
+        {
+            _settings.GlobalSource.Type = "BingDaily";
+        }
+
+        _settings.GlobalSource.LocalFolderPath = txtGlobalFolderPath.Text.Trim();
+        _settings.GlobalSource.PexelsApiKey = txtGlobalPexelsApiKey.Text.Trim();
+        _settings.GlobalSource.PexelsQuery = string.IsNullOrWhiteSpace(txtGlobalPexelsQuery.Text) ? "nature" : txtGlobalPexelsQuery.Text.Trim();
+
+        // 4. Save AutoStart
+        _settings.AutoStart = chkAutoStart.IsChecked ?? false;
         ManageAutoStart(_settings.AutoStart);
 
+        // 5. Update Monitors Config Cache
+        var currentMonitors = WallpaperManager.GetMonitors();
+        _settings.Monitors = currentMonitors.Select(m => new MonitorConfig
+        {
+            MonitorId = m.MonitorId,
+            DeviceName = m.DeviceName,
+            FriendlyName = m.FriendlyName,
+            Width = m.Width,
+            Height = m.Height,
+            Source = _settings.GlobalSource
+        }).ToList();
+
+        // 6. Persist & Restart Scheduler
+        _settings.Save();
         _scheduler.UpdateSettings(_settings);
         _scheduler.Start();
 
-        System.Windows.MessageBox.Show("Settings saved and scheduler started!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-        WindowState = WindowState.Minimized;
+        System.Windows.MessageBox.Show("Cài đặt đã được lưu thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+        Hide();
+        ((App)System.Windows.Application.Current).TrimWorkingSetMemory();
     }
 
     private async void BtnChangeNow_Click(object sender, RoutedEventArgs e)
@@ -133,7 +231,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            System.Windows.MessageBox.Show($"Could not change wallpaper: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            System.Windows.MessageBox.Show($"Lỗi đổi hình nền: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 
@@ -145,7 +243,8 @@ public partial class MainWindow : Window
             if (rk == null) return;
 
             const string appName = "BackgroundSwitch";
-            var processPath = Process.GetCurrentProcess().MainModule?.FileName;
+            var processPath = Environment.ProcessPath;
+
             if (string.IsNullOrEmpty(processPath)) return;
 
             if (enable)
@@ -159,58 +258,23 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            System.Windows.MessageBox.Show("Could not set AutoStart: " + ex.Message, "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
-        }
-    }
-
-    private void Window_StateChanged(object sender, EventArgs e)
-    {
-        if (WindowState == WindowState.Minimized)
-        {
-            Hide();
+            System.Diagnostics.Debug.WriteLine($"[AutoStart] Error configuring registry: {ex.Message}");
         }
     }
 
     private void Window_Closing(object sender, CancelEventArgs e)
     {
-        if (!_isExplicitClose)
+        if (!_isRealClose)
         {
             e.Cancel = true;
-            WindowState = WindowState.Minimized;
+            Hide();
+            ((App)System.Windows.Application.Current).TrimWorkingSetMemory();
         }
     }
 
-    private void MyNotifyIcon_TrayMouseDoubleClick(object sender, RoutedEventArgs e)
+    public void ForceClose()
     {
-        Show();
-        WindowState = WindowState.Normal;
-        Activate();
-    }
-
-    private void MenuOpen_Click(object sender, RoutedEventArgs e)
-    {
-        Show();
-        WindowState = WindowState.Normal;
-        Activate();
-    }
-
-    private async void MenuChangeNow_Click(object sender, RoutedEventArgs e)
-    {
-        try
-        {
-            await _scheduler.ChangeWallpaperAsync();
-        }
-        catch (Exception ex)
-        {
-            System.Windows.MessageBox.Show($"Could not change wallpaper: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-    }
-
-    private void MenuExit_Click(object sender, RoutedEventArgs e)
-    {
-        _isExplicitClose = true;
-        _scheduler.Dispose();
-        MyNotifyIcon.Dispose();
-        System.Windows.Application.Current.Shutdown();
+        _isRealClose = true;
+        Close();
     }
 }
