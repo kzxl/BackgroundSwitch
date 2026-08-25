@@ -1,0 +1,84 @@
+namespace BackgroundSwitch.Services;
+
+public enum AppLanguage
+{
+    Bilingual = 0, // Song ngữ: "Next Background (Ảnh tiếp theo)"
+    Vietnamese = 1,
+    English = 2
+}
+
+public static class LocalizationManager
+{
+    public static AppLanguage CurrentLanguage { get; set; } = AppLanguage.Bilingual;
+
+    private static readonly Dictionary<string, (string en, string vi)> Strings = new()
+    {
+        // Tray Context Menu Items
+        { "Menu_Next", ("Next Background", "Ảnh tiếp theo") },
+        { "Menu_Previous", ("Previous Background", "Ảnh trước đó") },
+        { "Menu_Pause", ("Pause Changer", "Tạm dừng đổi ảnh") },
+        { "Menu_Resume", ("Resume Changer", "Tiếp tục đổi ảnh") },
+        { "Menu_SaveAs", ("Save Picture As...", "Lưu ảnh này về máy...") },
+        { "Menu_ViewCurrent", ("View Current Picture", "Xem file ảnh gốc") },
+        { "Menu_NeverShowAgain", ("Never Show Again", "Không bao giờ hiển thị lại ảnh này") },
+        { "Menu_OpenCache", ("Open Cache Folder", "Mở thư mục Cache ảnh") },
+        { "Menu_MultiMonitor", ("Multi-Monitor", "Đa màn hình") },
+        { "Menu_MonitorNext", ("Next on", "Đổi ảnh") },
+        { "Menu_SyncAll", ("Sync All Monitors", "Đồng bộ tất cả màn hình") },
+        { "Menu_ClearBackground", ("Clear Background", "Xóa hình nền") },
+        { "Menu_Settings", ("Settings...", "Cài đặt & Cấu hình...") },
+        { "Menu_Exit", ("Exit", "Thoát") },
+
+        // MainWindow UI Labels
+        { "UI_Title", ("BackgroundSwitch — Multi-Monitor Wallpaper Changer", "BackgroundSwitch — Tự Động Đổi Hình Nền Đa Màn Hình") },
+        { "UI_Subtitle", ("High-Performance Multi-Monitor Wallpaper Switcher (.NET 10)", "Tự động đổi hình nền đa màn hình & Tối ưu hiệu năng cao (.NET 10)") },
+        { "UI_ModeSection", ("🖥️ Display Mode & Scaling", "🖥️ Chế độ Hiển thị & Căn chỉnh") },
+        { "UI_ModeSynced", ("Synced (1 for all)", "Đồng bộ (1 ảnh cho tất cả)") },
+        { "UI_ModePerMonitor", ("Per-Monitor (Individual)", "Mỗi màn hình 1 ảnh riêng") },
+        { "UI_ModeSpan", ("Span across monitors", "Trải rộng (Span)") },
+        { "UI_ScaleLabel", ("Scale:", "Căn chỉnh:") },
+        { "UI_SourceSection", ("🌐 Wallpaper Source", "🌐 Nguồn hình nền") },
+        { "UI_SourceBing", ("Bing Daily 4K (Auto)", "Bing Daily 4K (Tự động)") },
+        { "UI_SourceLocal", ("Local Folder", "Thư mục Local") },
+        { "UI_SourcePexels", ("Pexels API (Online)", "Pexels API (Online)") },
+        { "UI_LocalFolderPath", ("Local Folder Path:", "Đường dẫn thư mục ảnh:") },
+        { "UI_BrowseBtn", ("📁 Browse", "📁 Chọn") },
+        { "UI_PexelsApiKey", ("Pexels API Key:", "Pexels API Key:") },
+        { "UI_PexelsQuery", ("Search Keyword:", "Từ khóa tìm kiếm:") },
+        { "UI_BingDesc", ("✨ Automatically downloads Microsoft Bing's Ultra HD wallpaper every day. No API key required.", "✨ Tự động tải hình ảnh Ultra HD chất lượng cao mỗi ngày của Microsoft Bing. Không cần API key.") },
+        { "UI_PerMonitorSection", ("🎛️ Per-Monitor Configuration", "🎛️ Cấu hình từng Màn hình") },
+        { "UI_GeneralSection", ("⚙️ General Settings", "⚙️ Cài đặt Chung & Vận hành") },
+        { "UI_IntervalLabel", ("Change Interval (Minutes):", "Tần suất đổi (Phút):") },
+        { "UI_MinutesUnit", ("minutes", "phút") },
+        { "UI_AutoStart", ("Start with Windows (100% silent & zero-flicker)", "Khởi động cùng Windows (Chạy ngầm 100% không chớp màn hình)") },
+        { "UI_LanguageLabel", ("Language:", "Ngôn ngữ:") },
+        { "UI_BlacklistInfo", ("Blacklisted Images:", "Số ảnh đã chặn (Blacklist):") },
+        { "UI_ClearBlacklistBtn", ("🧹 Clear Blacklist", "🧹 Xóa danh sách chặn") },
+        { "UI_ChangeNowBtn", ("🔄 Change Wallpaper Now", "🔄 Đổi hình nền ngay") },
+        { "UI_SaveBtn", ("💾 Save & Apply", "💾 Lưu & Áp dụng") },
+
+        // Messages
+        { "Msg_SaveSuccess", ("Settings saved successfully!", "Cài đặt đã được lưu thành công!") },
+        { "Msg_BlacklistSuccess", ("Image added to Blacklist and switched to next wallpaper.", "Đã thêm ảnh vào danh sách chặn và chuyển sang ảnh tiếp theo.") },
+        { "Msg_ClearBlacklistConfirm", ("Are you sure you want to clear all blacklisted images?", "Bạn có chắc chắn muốn xóa toàn bộ danh sách ảnh đã chặn không?") },
+        { "Msg_ClearBlacklistDone", ("Blacklist cleared successfully!", "Đã xóa danh sách chặn thành công!") }
+    };
+
+    public static string Get(string key)
+    {
+        if (!Strings.TryGetValue(key, out var pair))
+        {
+            return key;
+        }
+
+        return CurrentLanguage switch
+        {
+            AppLanguage.Vietnamese => pair.vi,
+            AppLanguage.English => pair.en,
+            _ => $"{pair.en} ({pair.vi})" // Bilingual mode
+        };
+    }
+
+    public static string GetEn(string key) => Strings.TryGetValue(key, out var pair) ? pair.en : key;
+    public static string GetVi(string key) => Strings.TryGetValue(key, out var pair) ? pair.vi : key;
+}

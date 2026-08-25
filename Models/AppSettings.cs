@@ -45,6 +45,7 @@ public class AppSettings
     public WallpaperScale Scale { get; set; } = WallpaperScale.Fill;
     public int IntervalMinutes { get; set; } = 15;
     public bool AutoStart { get; set; } = true;
+    public string Language { get; set; } = "bilingual"; // "bilingual", "vi", "en"
 
     // Nguồn ảnh chung khi ở chế độ Synced hoặc Span
     public ProviderConfig GlobalSource { get; set; } = new();
