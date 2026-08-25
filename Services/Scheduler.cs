@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using BackgroundSwitch.Models;
 using BackgroundSwitch.Providers;
 
@@ -7,45 +8,63 @@ public class Scheduler : IDisposable
 {
     private System.Timers.Timer? _timer;
     private AppSettings _settings;
-    private IImageProvider _provider;
     private CancellationTokenSource? _cts;
     private bool _disposed;
+    private bool _isFirstRun = true;
 
     public event Action<string>? OnError;
 
     public Scheduler(AppSettings settings)
     {
         _settings = settings ?? throw new ArgumentNullException(nameof(settings));
-        _provider = CreateProvider(_settings);
     }
 
     public void UpdateSettings(AppSettings newSettings)
     {
         _settings = newSettings ?? throw new ArgumentNullException(nameof(newSettings));
-        _provider = CreateProvider(_settings);
 
         if (_timer != null)
         {
             _timer.Interval = Math.Max(1, _settings.IntervalMinutes) * 60 * 1000.0;
         }
+
+        // Apply scale position immediately on settings update
+        WallpaperManager.SetPosition(_settings.Scale);
     }
 
-    private static IImageProvider CreateProvider(AppSettings settings)
+    public static IImageProvider CreateProvider(ProviderConfig config)
     {
-        if (string.Equals(settings.SourceType, "Pexels", StringComparison.OrdinalIgnoreCase))
+        return config.Type.ToLowerInvariant() switch
         {
-            return new PexelsImageProvider(settings.PexelsApiKey, settings.PexelsQuery);
-        }
-
-        return new LocalFolderImageProvider(settings.LocalFolderPath);
+            "bingdaily" => new BingDailyImageProvider(),
+            "pexels" => new PexelsImageProvider(config.PexelsApiKey, config.PexelsQuery),
+            _ => new LocalFolderImageProvider(config.LocalFolderPath)
+        };
     }
 
-    public void Start()
+    public void Start(bool isBootDelayed = false)
     {
         Stop();
 
-        // Fire immediately on start in a safe background task
-        Task.Run(async () => await ChangeWallpaperAsync());
+        // Apply scaling position
+        WallpaperManager.SetPosition(_settings.Scale);
+
+        // Run initial wallpaper change asynchronously
+        Task.Run(async () =>
+        {
+            if (isBootDelayed && _isFirstRun)
+            {
+                _isFirstRun = false;
+                // Wait 8 seconds on Windows startup to ensure Wi-Fi/Ethernet connects
+                try
+                {
+                    await Task.Delay(8000);
+                }
+                catch { }
+            }
+
+            await ChangeWallpaperAsync();
+        });
 
         var intervalMs = Math.Max(1, _settings.IntervalMinutes) * 60 * 1000.0;
         _timer = new System.Timers.Timer(intervalMs);
@@ -77,18 +96,56 @@ public class Scheduler : IDisposable
             _cts = new CancellationTokenSource();
             var token = _cts.Token;
 
-            var imagePath = await _provider.GetNextImagePathAsync(token);
-            if (!string.IsNullOrEmpty(imagePath) && !token.IsCancellationRequested)
+            // Set scaling position
+            WallpaperManager.SetPosition(_settings.Scale);
+
+            if (_settings.Mode == WallpaperMode.PerMonitor && _settings.Monitors.Count > 0)
             {
-                WallpaperManager.SetWallpaper(imagePath);
+                // Mode 2: Per-Monitor (Each monitor has its own provider/image)
+                var currentMonitors = WallpaperManager.GetMonitors();
+                var tasks = new List<Task>();
+
+                foreach (var monitor in currentMonitors)
+                {
+                    var monConfig = _settings.Monitors.FirstOrDefault(m => 
+                        (!string.IsNullOrEmpty(m.MonitorId) && m.MonitorId == monitor.MonitorId) ||
+                        (!string.IsNullOrEmpty(m.DeviceName) && m.DeviceName == monitor.DeviceName)) 
+                        ?? new MonitorConfig { Source = _settings.GlobalSource };
+
+                    var provider = CreateProvider(monConfig.Source);
+                    var monId = monitor.MonitorId;
+
+                    tasks.Add(Task.Run(async () =>
+                    {
+                        var imgPath = await provider.GetNextImagePathAsync(token);
+                        if (!string.IsNullOrEmpty(imgPath) && !token.IsCancellationRequested)
+                        {
+                            WallpaperManager.SetWallpaper(monId, imgPath);
+                        }
+                    }, token));
+                }
+
+                await Task.WhenAll(tasks);
+            }
+            else
+            {
+                // Mode 1: Synced or Mode 3: Span
+                var provider = CreateProvider(_settings.GlobalSource);
+                var imagePath = await provider.GetNextImagePathAsync(token);
+
+                if (!string.IsNullOrEmpty(imagePath) && !token.IsCancellationRequested)
+                {
+                    WallpaperManager.SetWallpaper(null, imagePath);
+                }
             }
         }
         catch (OperationCanceledException)
         {
-            // Expected when user cancels or triggers a new change
+            // Normal cancellation
         }
         catch (Exception ex)
         {
+            Debug.WriteLine($"[Scheduler] Error during wallpaper change: {ex.Message}");
             OnError?.Invoke(ex.Message);
         }
     }
