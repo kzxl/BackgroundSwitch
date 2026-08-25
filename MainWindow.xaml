@@ -1,7 +1,7 @@
 <Window x:Class="BackgroundSwitch.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="BackgroundSwitch — Multi-Monitor Wallpaper Changer" Height="620" Width="680"
+        Title="BackgroundSwitch — Multi-Monitor Wallpaper Changer" Height="680" Width="720"
         WindowStartupLocation="CenterScreen" ResizeMode="CanMinimize"
         Background="#1E1E2E" Foreground="#CDD6F4"
         Closing="Window_Closing">
@@ -93,6 +93,29 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Background" Value="#F38BA8"/>
+            <Setter Property="Foreground" Value="#11111B"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" 
+                                CornerRadius="5" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#F5C2E7"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#EBA0AC"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
@@ -103,19 +126,34 @@
                 <RowDefinition Height="Auto"/> <!-- Global Source Card -->
                 <RowDefinition Height="Auto"/> <!-- Per-Monitor List Card -->
                 <RowDefinition Height="Auto"/> <!-- General Settings Card -->
+                <RowDefinition Height="Auto"/> <!-- Blacklist Management Card -->
                 <RowDefinition Height="Auto"/> <!-- Action Buttons -->
             </Grid.RowDefinitions>
 
-            <!-- 1. Header -->
-            <StackPanel Grid.Row="0" Margin="0,0,0,18">
-                <TextBlock Text="🖼️ BackgroundSwitch" FontSize="22" FontWeight="Bold" Foreground="#89B4FA"/>
-                <TextBlock Text="Tự động đổi hình nền đa màn hình &amp; Tối ưu hiệu năng cao (.NET 10)" FontSize="13" Foreground="#A6ADC8" Margin="0,4,0,0"/>
-            </StackPanel>
+            <!-- 1. Header with Language Selector -->
+            <Grid Grid.Row="0" Margin="0,0,0,18">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock x:Name="lblAppTitle" Text="🖼️ BackgroundSwitch" FontSize="22" FontWeight="Bold" Foreground="#89B4FA"/>
+                    <TextBlock x:Name="lblAppSubtitle" Text="Tự động đổi hình nền đa màn hình &amp; Tối ưu hiệu năng cao (.NET 10)" FontSize="13" Foreground="#A6ADC8" Margin="0,4,0,0"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock x:Name="lblLanguage" Text="🌐 Ngôn ngữ:" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold"/>
+                    <ComboBox x:Name="cbLanguage" Width="140" SelectionChanged="Language_SelectionChanged">
+                        <ComboBoxItem Content="Song ngữ (Bilingual)" Tag="bilingual" IsSelected="True"/>
+                        <ComboBoxItem Content="Tiếng Việt" Tag="vi"/>
+                        <ComboBoxItem Content="English" Tag="en"/>
+                    </ComboBox>
+                </StackPanel>
+            </Grid>
 
             <!-- 2. Monitor Mode & Scaling Card -->
             <Border Grid.Row="1" Background="#252538" CornerRadius="8" Padding="16" Margin="0,0,0,14" BorderBrush="#3E3E58" BorderThickness="1">
                 <StackPanel>
-                    <TextBlock Text="🖥️ Chế độ Hiển thị &amp; Tỉ lệ màn hình" FontWeight="Bold" FontSize="14" Foreground="#89B4FA" Margin="0,0,0,10"/>
+                    <TextBlock x:Name="lblModeSection" Text="🖥️ Chế độ Hiển thị &amp; Tỉ lệ màn hình" FontWeight="Bold" FontSize="14" Foreground="#89B4FA" Margin="0,0,0,10"/>
                     
                     <Grid Margin="0,0,0,12">
                         <Grid.ColumnDefinitions>
@@ -133,7 +171,7 @@
                             <ColumnDefinition Width="130"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="Căn chỉnh (Scale):" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                        <TextBlock x:Name="lblScale" Text="Căn chỉnh (Scale):" VerticalAlignment="Center" FontWeight="SemiBold"/>
                         <ComboBox x:Name="cbScale" Grid.Column="1" SelectionChanged="Scale_SelectionChanged">
                             <ComboBoxItem Content="Fill — Cắt vừa khung (Khuyên dùng)" Tag="Fill" IsSelected="True"/>
                             <ComboBoxItem Content="Fit — Giữ nguyên tỉ lệ (Viền nền)" Tag="Fit"/>
@@ -149,7 +187,7 @@
             <!-- 3. Global Source Card -->
             <Border x:Name="cardGlobalSource" Grid.Row="2" Background="#252538" CornerRadius="8" Padding="16" Margin="0,0,0,14" BorderBrush="#3E3E58" BorderThickness="1">
                 <StackPanel>
-                    <TextBlock Text="🌐 Nguồn hình nền" FontWeight="Bold" FontSize="14" Foreground="#89B4FA" Margin="0,0,0,10"/>
+                    <TextBlock x:Name="lblSourceSection" Text="🌐 Nguồn hình nền" FontWeight="Bold" FontSize="14" Foreground="#89B4FA" Margin="0,0,0,10"/>
 
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
                         <RadioButton x:Name="rbSourceBing" Content="Bing Daily 4K (Tự động)" IsChecked="True" Checked="GlobalSource_Changed"/>
@@ -159,23 +197,23 @@
 
                     <!-- Local Config -->
                     <StackPanel x:Name="panelGlobalLocal" Visibility="Collapsed" Margin="0,0,0,5">
-                        <TextBlock Text="Đường dẫn thư mục ảnh:" Margin="0,0,0,5"/>
+                        <TextBlock x:Name="lblLocalFolderPath" Text="Đường dẫn thư mục ảnh:" Margin="0,0,0,5"/>
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBox x:Name="txtGlobalFolderPath"/>
-                            <Button Content="📁 Chọn" Grid.Column="1" Width="70" Margin="8,0,0,0" Click="BtnBrowseGlobalFolder_Click"/>
+                            <Button x:Name="btnBrowse" Content="📁 Chọn" Grid.Column="1" Width="70" Margin="8,0,0,0" Click="BtnBrowseGlobalFolder_Click"/>
                         </Grid>
                     </StackPanel>
 
                     <!-- Pexels Config -->
                     <StackPanel x:Name="panelGlobalPexels" Visibility="Collapsed">
-                        <TextBlock Text="Pexels API Key:" Margin="0,0,0,4"/>
+                        <TextBlock x:Name="lblPexelsApiKey" Text="Pexels API Key:" Margin="0,0,0,4"/>
                         <TextBox x:Name="txtGlobalPexelsApiKey" Margin="0,0,0,8"/>
                         
-                        <TextBlock Text="Từ khóa tìm kiếm (nature, city, cyberpunk...):" Margin="0,0,0,4"/>
+                        <TextBlock x:Name="lblPexelsQuery" Text="Từ khóa tìm kiếm (nature, city, cyberpunk...):" Margin="0,0,0,4"/>
                         <TextBox x:Name="txtGlobalPexelsQuery"/>
                     </StackPanel>
 
@@ -185,10 +223,10 @@
                 </StackPanel>
             </Border>
 
-            <!-- 4. Per-Monitor Config Card (Only visible when PerMonitor selected) -->
+            <!-- 4. Per-Monitor Config Card -->
             <Border x:Name="cardPerMonitor" Grid.Row="3" Visibility="Collapsed" Background="#252538" CornerRadius="8" Padding="16" Margin="0,0,0,14" BorderBrush="#3E3E58" BorderThickness="1">
                 <StackPanel>
-                    <TextBlock Text="🎛️ Cấu hình từng Màn hình" FontWeight="Bold" FontSize="14" Foreground="#89B4FA" Margin="0,0,0,10"/>
+                    <TextBlock x:Name="lblPerMonitorSection" Text="🎛️ Cấu hình từng Màn hình" FontWeight="Bold" FontSize="14" Foreground="#89B4FA" Margin="0,0,0,10"/>
                     <ItemsControl x:Name="listMonitors">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
@@ -205,14 +243,13 @@
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
-                    <TextBlock Text="💡 Mỗi màn hình sẽ tự động lấy hình nền độc lập theo chủ đề được cấu hình." FontSize="12" Foreground="#A6ADC8" Margin="0,4,0,0"/>
                 </StackPanel>
             </Border>
 
             <!-- 5. General Settings Card -->
-            <Border Grid.Row="4" Background="#252538" CornerRadius="8" Padding="16" Margin="0,0,0,18" BorderBrush="#3E3E58" BorderThickness="1">
+            <Border Grid.Row="4" Background="#252538" CornerRadius="8" Padding="16" Margin="0,0,0,14" BorderBrush="#3E3E58" BorderThickness="1">
                 <StackPanel>
-                    <TextBlock Text="⚙️ Cài đặt Chung &amp; Vận hành" FontWeight="Bold" FontSize="14" Foreground="#89B4FA" Margin="0,0,0,10"/>
+                    <TextBlock x:Name="lblGeneralSection" Text="⚙️ Cài đặt Chung &amp; Vận hành" FontWeight="Bold" FontSize="14" Foreground="#89B4FA" Margin="0,0,0,10"/>
 
                     <Grid Margin="0,0,0,10">
                         <Grid.ColumnDefinitions>
@@ -220,19 +257,34 @@
                             <ColumnDefinition Width="80"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="Tần suất đổi (Phút):" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="lblInterval" Text="Tần suất đổi (Phút):" VerticalAlignment="Center"/>
                         <TextBox x:Name="txtInterval" Grid.Column="1" HorizontalContentAlignment="Center"/>
-                        <TextBlock Text="phút" Grid.Column="2" VerticalAlignment="Center" Margin="8,0,0,0" Foreground="#A6ADC8"/>
+                        <TextBlock x:Name="lblMinutesUnit" Text="phút" Grid.Column="2" VerticalAlignment="Center" Margin="8,0,0,0" Foreground="#A6ADC8"/>
                     </Grid>
 
                     <CheckBox x:Name="chkAutoStart" Content="Khởi động cùng Windows (Chạy ngầm 100% không chớp màn hình)"/>
                 </StackPanel>
             </Border>
 
-            <!-- 6. Action Buttons -->
-            <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="🔄 Đổi hình nền ngay" Width="150" Margin="0,0,12,0" Click="BtnChangeNow_Click"/>
-                <Button Content="💾 Lưu &amp; Áp dụng" Width="140" Style="{StaticResource AccentButton}" Click="BtnSave_Click"/>
+            <!-- 6. Blacklist Management Card -->
+            <Border Grid.Row="5" Background="#252538" CornerRadius="8" Padding="16" Margin="0,0,0,18" BorderBrush="#3E3E58" BorderThickness="1">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock x:Name="lblBlacklistTitle" Text="🚫 Quản lý Danh sách chặn (Blacklist)" FontWeight="Bold" FontSize="13" Foreground="#F38BA8"/>
+                        <TextBlock x:Name="lblBlacklistCount" Text="Số ảnh đã chặn: 0" FontSize="12" Foreground="#A6ADC8" Margin="0,2,0,0"/>
+                    </StackPanel>
+                    <Button x:Name="btnClearBlacklist" Content="🧹 Xóa danh sách chặn" Grid.Column="1" Width="160" Style="{StaticResource DangerButton}" Click="BtnClearBlacklist_Click"/>
+                </Grid>
+            </Border>
+
+            <!-- 7. Action Buttons -->
+            <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="btnChangeNow" Content="🔄 Đổi hình nền ngay" Width="180" Margin="0,0,12,0" Click="BtnChangeNow_Click"/>
+                <Button x:Name="btnSave" Content="💾 Lưu &amp; Áp dụng" Width="160" Style="{StaticResource AccentButton}" Click="BtnSave_Click"/>
             </StackPanel>
         </Grid>
     </ScrollViewer>

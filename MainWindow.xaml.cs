@@ -13,6 +13,7 @@ public partial class MainWindow : Window
     private readonly AppSettings _settings;
     private readonly Scheduler _scheduler;
     private bool _isRealClose;
+    private bool _isInitializing = true;
 
     public MainWindow(AppSettings settings, Scheduler scheduler)
     {
@@ -21,11 +22,25 @@ public partial class MainWindow : Window
         _scheduler = scheduler ?? throw new ArgumentNullException(nameof(scheduler));
 
         LoadSettingsToUI();
+        _isInitializing = false;
     }
 
     private void LoadSettingsToUI()
     {
-        // 1. Monitor Mode
+        // 1. Language
+        var langTag = _settings.Language?.ToLowerInvariant() ?? "bilingual";
+        foreach (ComboBoxItem item in cbLanguage.Items)
+        {
+            if (string.Equals(item.Tag?.ToString(), langTag, StringComparison.OrdinalIgnoreCase))
+            {
+                cbLanguage.SelectedItem = item;
+                break;
+            }
+        }
+        App.UpdateAppLanguage(langTag);
+        ApplyLocalization();
+
+        // 2. Monitor Mode
         switch (_settings.Mode)
         {
             case WallpaperMode.PerMonitor:
@@ -42,7 +57,7 @@ public partial class MainWindow : Window
                 break;
         }
 
-        // 2. Scale Selection
+        // 3. Scale Selection
         var scaleTag = _settings.Scale.ToString();
         foreach (ComboBoxItem item in cbScale.Items)
         {
@@ -53,7 +68,7 @@ public partial class MainWindow : Window
             }
         }
 
-        // 3. Global Source
+        // 4. Global Source
         var sourceType = _settings.GlobalSource.Type;
         if (string.Equals(sourceType, "Local", StringComparison.OrdinalIgnoreCase))
         {
@@ -81,13 +96,68 @@ public partial class MainWindow : Window
         txtGlobalPexelsApiKey.Text = _settings.GlobalSource.PexelsApiKey;
         txtGlobalPexelsQuery.Text = _settings.GlobalSource.PexelsQuery;
 
-        // 4. Populate Monitors List
+        // 5. Populate Monitors List
         var monitors = WallpaperManager.GetMonitors();
         listMonitors.ItemsSource = monitors;
 
-        // 5. General Settings
+        // 6. General Settings
         txtInterval.Text = Math.Max(1, _settings.IntervalMinutes).ToString();
         chkAutoStart.IsChecked = _settings.AutoStart;
+
+        // 7. Blacklist Count
+        UpdateBlacklistCountUI();
+    }
+
+    private void UpdateBlacklistCountUI()
+    {
+        lblBlacklistCount.Text = $"{LocalizationManager.Get("UI_BlacklistInfo")} {BlacklistManager.Instance.Count}";
+    }
+
+    private void ApplyLocalization()
+    {
+        Title = LocalizationManager.Get("UI_Title");
+        lblAppTitle.Text = "🖼️ BackgroundSwitch";
+        lblAppSubtitle.Text = LocalizationManager.Get("UI_Subtitle");
+
+        lblLanguage.Text = $"🌐 {LocalizationManager.Get("UI_LanguageLabel")}";
+        lblModeSection.Text = LocalizationManager.Get("UI_ModeSection");
+        rbModeSynced.Content = LocalizationManager.Get("UI_ModeSynced");
+        rbModePerMonitor.Content = LocalizationManager.Get("UI_ModePerMonitor");
+        rbModeSpan.Content = LocalizationManager.Get("UI_ModeSpan");
+        lblScale.Text = LocalizationManager.Get("UI_ScaleLabel");
+
+        lblSourceSection.Text = LocalizationManager.Get("UI_SourceSection");
+        rbSourceBing.Content = LocalizationManager.Get("UI_SourceBing");
+        rbSourceLocal.Content = LocalizationManager.Get("UI_SourceLocal");
+        rbSourcePexels.Content = LocalizationManager.Get("UI_SourcePexels");
+
+        lblLocalFolderPath.Text = LocalizationManager.Get("UI_LocalFolderPath");
+        btnBrowse.Content = LocalizationManager.Get("UI_BrowseBtn");
+        lblPexelsApiKey.Text = LocalizationManager.Get("UI_PexelsApiKey");
+        lblPexelsQuery.Text = LocalizationManager.Get("UI_PexelsQuery");
+        txtBingInfo.Text = LocalizationManager.Get("UI_BingDesc");
+
+        lblPerMonitorSection.Text = LocalizationManager.Get("UI_PerMonitorSection");
+        lblGeneralSection.Text = LocalizationManager.Get("UI_GeneralSection");
+        lblInterval.Text = LocalizationManager.Get("UI_IntervalLabel");
+        lblMinutesUnit.Text = LocalizationManager.Get("UI_MinutesUnit");
+        chkAutoStart.Content = LocalizationManager.Get("UI_AutoStart");
+
+        btnClearBlacklist.Content = LocalizationManager.Get("UI_ClearBlacklistBtn");
+        btnChangeNow.Content = LocalizationManager.Get("UI_ChangeNowBtn");
+        btnSave.Content = LocalizationManager.Get("UI_SaveBtn");
+
+        UpdateBlacklistCountUI();
+    }
+
+    private void Language_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_isInitializing || cbLanguage?.SelectedItem is not ComboBoxItem selectedItem) return;
+
+        var lang = selectedItem.Tag?.ToString() ?? "bilingual";
+        _settings.Language = lang;
+        App.UpdateAppLanguage(lang);
+        ApplyLocalization();
     }
 
     private void Mode_Changed(object sender, RoutedEventArgs e)
@@ -146,6 +216,18 @@ public partial class MainWindow : Window
         }
     }
 
+    private void BtnClearBlacklist_Click(object sender, RoutedEventArgs e)
+    {
+        var confirmMsg = LocalizationManager.Get("Msg_ClearBlacklistConfirm");
+        var result = System.Windows.MessageBox.Show(confirmMsg, "BackgroundSwitch", MessageBoxButton.YesNo, MessageBoxImage.Question);
+        if (result == MessageBoxResult.Yes)
+        {
+            BlacklistManager.Instance.Clear();
+            UpdateBlacklistCountUI();
+            System.Windows.MessageBox.Show(LocalizationManager.Get("Msg_ClearBlacklistDone"), "BackgroundSwitch", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+    }
+
     private void BtnSave_Click(object sender, RoutedEventArgs e)
     {
         if (int.TryParse(txtInterval.Text, out int interval) && interval > 0)
@@ -154,7 +236,7 @@ public partial class MainWindow : Window
         }
         else
         {
-            System.Windows.MessageBox.Show("Tần suất đổi phải là số nguyên dương (phút).", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+            System.Windows.MessageBox.Show("Interval must be a valid positive number (minutes).", "Validation", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 
@@ -197,11 +279,17 @@ public partial class MainWindow : Window
         _settings.GlobalSource.PexelsApiKey = txtGlobalPexelsApiKey.Text.Trim();
         _settings.GlobalSource.PexelsQuery = string.IsNullOrWhiteSpace(txtGlobalPexelsQuery.Text) ? "nature" : txtGlobalPexelsQuery.Text.Trim();
 
-        // 4. Save AutoStart
+        // 4. Save Language
+        if (cbLanguage.SelectedItem is ComboBoxItem selectedLang)
+        {
+            _settings.Language = selectedLang.Tag?.ToString() ?? "bilingual";
+        }
+
+        // 5. Save AutoStart
         _settings.AutoStart = chkAutoStart.IsChecked ?? false;
         ManageAutoStart(_settings.AutoStart);
 
-        // 5. Update Monitors Config Cache
+        // 6. Update Monitors Config Cache
         var currentMonitors = WallpaperManager.GetMonitors();
         _settings.Monitors = currentMonitors.Select(m => new MonitorConfig
         {
@@ -213,12 +301,12 @@ public partial class MainWindow : Window
             Source = _settings.GlobalSource
         }).ToList();
 
-        // 6. Persist & Restart Scheduler
+        // 7. Persist & Restart Scheduler
         _settings.Save();
         _scheduler.UpdateSettings(_settings);
         _scheduler.Start();
 
-        System.Windows.MessageBox.Show("Cài đặt đã được lưu thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+        System.Windows.MessageBox.Show(LocalizationManager.Get("Msg_SaveSuccess"), "BackgroundSwitch", MessageBoxButton.OK, MessageBoxImage.Information);
         Hide();
         ((App)System.Windows.Application.Current).TrimWorkingSetMemory();
     }
@@ -231,7 +319,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            System.Windows.MessageBox.Show($"Lỗi đổi hình nền: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            System.Windows.MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 
