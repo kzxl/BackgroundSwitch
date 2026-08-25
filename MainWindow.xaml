@@ -143,7 +143,7 @@
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock x:Name="lblLanguage" Text="🌐 Ngôn ngữ:" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold"/>
                     <ComboBox x:Name="cbLanguage" Width="140" SelectionChanged="Language_SelectionChanged">
-                        <ComboBoxItem Content="Song ngữ (Bilingual)" Tag="bilingual" IsSelected="True"/>
+                        <ComboBoxItem Content="Song ngữ (Bilingual)" Tag="bilingual"/>
                         <ComboBoxItem Content="Tiếng Việt" Tag="vi"/>
                         <ComboBoxItem Content="English" Tag="en"/>
                     </ComboBox>
@@ -161,7 +161,7 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <RadioButton x:Name="rbModeSynced" Grid.Column="0" Content="Đồng bộ (1 ảnh)" IsChecked="True" Checked="Mode_Changed"/>
+                        <RadioButton x:Name="rbModeSynced" Grid.Column="0" Content="Đồng bộ (1 ảnh)" Checked="Mode_Changed"/>
                         <RadioButton x:Name="rbModePerMonitor" Grid.Column="1" Content="Mỗi màn hình 1 ảnh" Checked="Mode_Changed"/>
                         <RadioButton x:Name="rbModeSpan" Grid.Column="2" Content="Trải rộng (Span)" Checked="Mode_Changed"/>
                     </Grid>
@@ -173,7 +173,7 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock x:Name="lblScale" Text="Căn chỉnh (Scale):" VerticalAlignment="Center" FontWeight="SemiBold"/>
                         <ComboBox x:Name="cbScale" Grid.Column="1" SelectionChanged="Scale_SelectionChanged">
-                            <ComboBoxItem Content="Fill — Cắt vừa khung (Khuyên dùng)" Tag="Fill" IsSelected="True"/>
+                            <ComboBoxItem Content="Fill — Cắt vừa khung (Khuyên dùng)" Tag="Fill"/>
                             <ComboBoxItem Content="Fit — Giữ nguyên tỉ lệ (Viền nền)" Tag="Fit"/>
                             <ComboBoxItem Content="Stretch — Kéo dãn full màn hình" Tag="Stretch"/>
                             <ComboBoxItem Content="Center — Đặt ở chính giữa" Tag="Center"/>

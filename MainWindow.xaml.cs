@@ -17,9 +17,11 @@ public partial class MainWindow : Window
 
     public MainWindow(AppSettings settings, Scheduler scheduler)
     {
-        InitializeComponent();
         _settings = settings ?? throw new ArgumentNullException(nameof(settings));
         _scheduler = scheduler ?? throw new ArgumentNullException(nameof(scheduler));
+        _isInitializing = true;
+
+        InitializeComponent();
 
         LoadSettingsToUI();
         _isInitializing = false;
@@ -176,6 +178,8 @@ public partial class MainWindow : Window
 
     private void Scale_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        if (_isInitializing || _settings == null) return;
+
         if (cbScale?.SelectedItem is ComboBoxItem selectedItem &&
             Enum.TryParse<WallpaperScale>(selectedItem.Tag?.ToString(), out var scale))
         {
