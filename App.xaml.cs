@@ -82,8 +82,9 @@ public partial class App : System.Windows.Application
     {
         _trayIcon = new TaskbarIcon
         {
-            Icon = SystemIcons.Information,
-            ToolTipText = "BackgroundSwitch — Auto Wallpaper Changer"
+            Icon = CreateAppTrayIcon(),
+            ToolTipText = "BackgroundSwitch — Auto Wallpaper Changer",
+            Visibility = Visibility.Visible
         };
 
         _trayIcon.TrayMouseDoubleClick += (_, _) => ShowMainWindow();
@@ -93,6 +94,34 @@ public partial class App : System.Windows.Application
         PopulateContextMenu(contextMenu);
 
         _trayIcon.ContextMenu = contextMenu;
+        _trayIcon.ForceCreate();
+    }
+
+    private static Icon CreateAppTrayIcon()
+    {
+        try
+        {
+            using var bmp = new Bitmap(32, 32);
+            using var g = Graphics.FromImage(bmp);
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+
+            // Fill Accent Circle (#89B4FA)
+            using var brush = new SolidBrush(Color.FromArgb(137, 180, 250));
+            g.FillEllipse(brush, 2, 2, 28, 28);
+
+            // Draw Monitor Icon (#11111B)
+            using var pen = new Pen(Color.FromArgb(17, 17, 27), 2f);
+            g.DrawRectangle(pen, 7, 7, 18, 12);
+            g.DrawLine(pen, 16, 19, 16, 23);
+            g.DrawLine(pen, 11, 23, 21, 23);
+
+            var hIcon = bmp.GetHicon();
+            return Icon.FromHandle(hIcon);
+        }
+        catch
+        {
+            return SystemIcons.Information;
+        }
     }
 
     public void PopulateContextMenu(ContextMenu menu)
