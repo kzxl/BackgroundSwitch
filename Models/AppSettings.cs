@@ -23,17 +23,25 @@ public enum WallpaperScale
 
 public class ProviderConfig
 {
-    public string Type { get; set; } = "Local"; // "Local", "BingDaily", "Pexels"
+    public string Type { get; set; } = "BingDaily"; // "BingDaily", "Reddit", "Wallhaven", "Nasa", "Local", "Pexels", "Unsplash"
     public string LocalFolderPath { get; set; } = string.Empty;
     public string PexelsApiKey { get; set; } = string.Empty;
     public string PexelsQuery { get; set; } = "nature";
+
+    // New Providers Config
+    public string RedditSubreddit { get; set; } = "wallpapers"; // "wallpapers", "EarthPorn", "spaceporn", "AnimeWallpaper"
+    public string WallhavenQuery { get; set; } = "nature";      // "nature", "anime", "cyberpunk", "landscape"
+    public string WallhavenApiKey { get; set; } = string.Empty;
+    public string NasaApiKey { get; set; } = "DEMO_KEY";
+    public string UnsplashApiKey { get; set; } = string.Empty;
+    public string UnsplashQuery { get; set; } = "nature";
 }
 
 public class MonitorConfig
 {
     public string MonitorId { get; set; } = string.Empty;
-    public string DeviceName { get; set; } = string.Empty; // e.g. \\.\DISPLAY1
-    public string FriendlyName { get; set; } = string.Empty; // e.g. Display 1 (1920x1080)
+    public string DeviceName { get; set; } = string.Empty;
+    public string FriendlyName { get; set; } = string.Empty;
     public int Width { get; set; }
     public int Height { get; set; }
     public ProviderConfig Source { get; set; } = new();
@@ -98,7 +106,7 @@ public class AppSettings
             }
             catch
             {
-                // Fallback to default on deserialize error
+                // Fallback
             }
         }
         return new AppSettings();

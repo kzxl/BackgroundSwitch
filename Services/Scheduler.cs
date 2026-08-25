@@ -58,6 +58,10 @@ public class Scheduler : IDisposable
     {
         return config.Type.ToLowerInvariant() switch
         {
+            "reddit" => new RedditImageProvider(config.RedditSubreddit),
+            "wallhaven" => new WallhavenImageProvider(config.WallhavenQuery, config.WallhavenApiKey),
+            "nasa" or "apod" => new NasaApodImageProvider(config.NasaApiKey),
+            "unsplash" => new UnsplashImageProvider(config.UnsplashApiKey, config.UnsplashQuery),
             "bingdaily" => new BingDailyImageProvider(),
             "pexels" => new PexelsImageProvider(config.PexelsApiKey, config.PexelsQuery),
             _ => new LocalFolderImageProvider(config.LocalFolderPath)
