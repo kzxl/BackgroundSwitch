@@ -70,33 +70,43 @@ public partial class MainWindow : Window
             }
         }
 
-        // 4. Global Source
+        // 4. Global Source Selection
         var sourceType = _settings.GlobalSource.Type;
-        if (string.Equals(sourceType, "Local", StringComparison.OrdinalIgnoreCase))
+        switch (sourceType.ToLowerInvariant())
         {
-            rbSourceLocal.IsChecked = true;
-            panelGlobalLocal.Visibility = Visibility.Visible;
-            panelGlobalPexels.Visibility = Visibility.Collapsed;
-            txtBingInfo.Visibility = Visibility.Collapsed;
-        }
-        else if (string.Equals(sourceType, "Pexels", StringComparison.OrdinalIgnoreCase))
-        {
-            rbSourcePexels.IsChecked = true;
-            panelGlobalLocal.Visibility = Visibility.Collapsed;
-            panelGlobalPexels.Visibility = Visibility.Visible;
-            txtBingInfo.Visibility = Visibility.Collapsed;
-        }
-        else
-        {
-            rbSourceBing.IsChecked = true;
-            panelGlobalLocal.Visibility = Visibility.Collapsed;
-            panelGlobalPexels.Visibility = Visibility.Collapsed;
-            txtBingInfo.Visibility = Visibility.Visible;
+            case "reddit":
+                rbSourceReddit.IsChecked = true;
+                break;
+            case "wallhaven":
+                rbSourceWallhaven.IsChecked = true;
+                break;
+            case "nasa" or "apod":
+                rbSourceNasa.IsChecked = true;
+                break;
+            case "local":
+                rbSourceLocal.IsChecked = true;
+                break;
+            case "pexels":
+                rbSourcePexels.IsChecked = true;
+                break;
+            case "unsplash":
+                rbSourceUnsplash.IsChecked = true;
+                break;
+            default:
+                rbSourceBing.IsChecked = true;
+                break;
         }
 
+        txtGlobalRedditSub.Text = string.IsNullOrWhiteSpace(_settings.GlobalSource.RedditSubreddit) ? "wallpapers" : _settings.GlobalSource.RedditSubreddit;
+        txtGlobalWallhavenQuery.Text = string.IsNullOrWhiteSpace(_settings.GlobalSource.WallhavenQuery) ? "nature" : _settings.GlobalSource.WallhavenQuery;
+        txtGlobalWallhavenApiKey.Text = _settings.GlobalSource.WallhavenApiKey;
         txtGlobalFolderPath.Text = _settings.GlobalSource.LocalFolderPath;
         txtGlobalPexelsApiKey.Text = _settings.GlobalSource.PexelsApiKey;
         txtGlobalPexelsQuery.Text = _settings.GlobalSource.PexelsQuery;
+        txtGlobalUnsplashQuery.Text = _settings.GlobalSource.UnsplashQuery;
+        txtGlobalUnsplashApiKey.Text = _settings.GlobalSource.UnsplashApiKey;
+
+        UpdateProviderPanels();
 
         // 5. Populate Monitors List
         var monitors = WallpaperManager.GetMonitors();
@@ -130,14 +140,22 @@ public partial class MainWindow : Window
 
         lblSourceSection.Text = LocalizationManager.Get("UI_SourceSection");
         rbSourceBing.Content = LocalizationManager.Get("UI_SourceBing");
+        rbSourceReddit.Content = LocalizationManager.Get("UI_SourceReddit");
+        rbSourceWallhaven.Content = LocalizationManager.Get("UI_SourceWallhaven");
+        rbSourceNasa.Content = LocalizationManager.Get("UI_SourceNasa");
         rbSourceLocal.Content = LocalizationManager.Get("UI_SourceLocal");
         rbSourcePexels.Content = LocalizationManager.Get("UI_SourcePexels");
+        rbSourceUnsplash.Content = LocalizationManager.Get("UI_SourceUnsplash");
 
+        lblRedditSub.Text = LocalizationManager.Get("UI_RedditSub");
+        lblWallhavenQuery.Text = LocalizationManager.Get("UI_WallhavenQuery");
+        lblWallhavenApiKey.Text = LocalizationManager.Get("UI_WallhavenApiKey");
         lblLocalFolderPath.Text = LocalizationManager.Get("UI_LocalFolderPath");
         btnBrowse.Content = LocalizationManager.Get("UI_BrowseBtn");
         lblPexelsApiKey.Text = LocalizationManager.Get("UI_PexelsApiKey");
         lblPexelsQuery.Text = LocalizationManager.Get("UI_PexelsQuery");
-        txtBingInfo.Text = LocalizationManager.Get("UI_BingDesc");
+        lblUnsplashQuery.Text = LocalizationManager.Get("UI_UnsplashQuery");
+        lblUnsplashApiKey.Text = LocalizationManager.Get("UI_UnsplashApiKey");
 
         lblPerMonitorSection.Text = LocalizationManager.Get("UI_PerMonitorSection");
         lblGeneralSection.Text = LocalizationManager.Get("UI_GeneralSection");
@@ -149,7 +167,55 @@ public partial class MainWindow : Window
         btnChangeNow.Content = LocalizationManager.Get("UI_ChangeNowBtn");
         btnSave.Content = LocalizationManager.Get("UI_SaveBtn");
 
+        UpdateProviderPanels();
         UpdateBlacklistCountUI();
+    }
+
+    private void UpdateProviderPanels()
+    {
+        if (panelGlobalReddit == null || panelGlobalWallhaven == null || panelGlobalLocal == null ||
+            panelGlobalPexels == null || panelGlobalUnsplash == null || txtProviderInfo == null) return;
+
+        panelGlobalReddit.Visibility = Visibility.Collapsed;
+        panelGlobalWallhaven.Visibility = Visibility.Collapsed;
+        panelGlobalLocal.Visibility = Visibility.Collapsed;
+        panelGlobalPexels.Visibility = Visibility.Collapsed;
+        panelGlobalUnsplash.Visibility = Visibility.Collapsed;
+
+        if (rbSourceReddit.IsChecked == true)
+        {
+            panelGlobalReddit.Visibility = Visibility.Visible;
+            txtProviderInfo.Text = LocalizationManager.Get("UI_RedditDesc");
+        }
+        else if (rbSourceWallhaven.IsChecked == true)
+        {
+            panelGlobalWallhaven.Visibility = Visibility.Visible;
+            txtProviderInfo.Text = LocalizationManager.Get("UI_WallhavenDesc");
+        }
+        else if (rbSourceNasa.IsChecked == true)
+        {
+            txtProviderInfo.Text = LocalizationManager.Get("UI_NasaDesc");
+        }
+        else if (rbSourceLocal.IsChecked == true)
+        {
+            panelGlobalLocal.Visibility = Visibility.Visible;
+            txtProviderInfo.Text = "📁 Quét ảnh trực tiếp từ thư mục trên máy tính của bạn.";
+        }
+        else if (rbSourcePexels.IsChecked == true)
+        {
+            panelGlobalPexels.Visibility = Visibility.Visible;
+            txtProviderInfo.Text = "📷 Tự động tìm kiếm và tải ảnh chất lượng cao từ Pexels API theo từ khóa.";
+        }
+        else if (rbSourceUnsplash.IsChecked == true)
+        {
+            panelGlobalUnsplash.Visibility = Visibility.Visible;
+            txtProviderInfo.Text = LocalizationManager.Get("UI_UnsplashDesc");
+        }
+        else
+        {
+            // Default Bing Daily
+            txtProviderInfo.Text = LocalizationManager.Get("UI_BingDesc");
+        }
     }
 
     private void Language_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -164,7 +230,7 @@ public partial class MainWindow : Window
 
     private void Mode_Changed(object sender, RoutedEventArgs e)
     {
-        if (cardPerMonitor == null) return;
+        if (_isInitializing || cardPerMonitor == null) return;
 
         if (rbModePerMonitor.IsChecked == true)
         {
@@ -189,26 +255,8 @@ public partial class MainWindow : Window
 
     private void GlobalSource_Changed(object sender, RoutedEventArgs e)
     {
-        if (panelGlobalLocal == null || panelGlobalPexels == null || txtBingInfo == null) return;
-
-        if (rbSourceLocal.IsChecked == true)
-        {
-            panelGlobalLocal.Visibility = Visibility.Visible;
-            panelGlobalPexels.Visibility = Visibility.Collapsed;
-            txtBingInfo.Visibility = Visibility.Collapsed;
-        }
-        else if (rbSourcePexels.IsChecked == true)
-        {
-            panelGlobalLocal.Visibility = Visibility.Collapsed;
-            panelGlobalPexels.Visibility = Visibility.Visible;
-            txtBingInfo.Visibility = Visibility.Collapsed;
-        }
-        else
-        {
-            panelGlobalLocal.Visibility = Visibility.Collapsed;
-            panelGlobalPexels.Visibility = Visibility.Collapsed;
-            txtBingInfo.Visibility = Visibility.Visible;
-        }
+        if (_isInitializing) return;
+        UpdateProviderPanels();
     }
 
     private void BtnBrowseGlobalFolder_Click(object sender, RoutedEventArgs e)
@@ -266,7 +314,19 @@ public partial class MainWindow : Window
         }
 
         // 3. Save Global Source
-        if (rbSourceLocal.IsChecked == true)
+        if (rbSourceReddit.IsChecked == true)
+        {
+            _settings.GlobalSource.Type = "Reddit";
+        }
+        else if (rbSourceWallhaven.IsChecked == true)
+        {
+            _settings.GlobalSource.Type = "Wallhaven";
+        }
+        else if (rbSourceNasa.IsChecked == true)
+        {
+            _settings.GlobalSource.Type = "Nasa";
+        }
+        else if (rbSourceLocal.IsChecked == true)
         {
             _settings.GlobalSource.Type = "Local";
         }
@@ -274,14 +334,23 @@ public partial class MainWindow : Window
         {
             _settings.GlobalSource.Type = "Pexels";
         }
+        else if (rbSourceUnsplash.IsChecked == true)
+        {
+            _settings.GlobalSource.Type = "Unsplash";
+        }
         else
         {
             _settings.GlobalSource.Type = "BingDaily";
         }
 
+        _settings.GlobalSource.RedditSubreddit = string.IsNullOrWhiteSpace(txtGlobalRedditSub.Text) ? "wallpapers" : txtGlobalRedditSub.Text.Trim();
+        _settings.GlobalSource.WallhavenQuery = string.IsNullOrWhiteSpace(txtGlobalWallhavenQuery.Text) ? "nature" : txtGlobalWallhavenQuery.Text.Trim();
+        _settings.GlobalSource.WallhavenApiKey = txtGlobalWallhavenApiKey.Text.Trim();
         _settings.GlobalSource.LocalFolderPath = txtGlobalFolderPath.Text.Trim();
         _settings.GlobalSource.PexelsApiKey = txtGlobalPexelsApiKey.Text.Trim();
         _settings.GlobalSource.PexelsQuery = string.IsNullOrWhiteSpace(txtGlobalPexelsQuery.Text) ? "nature" : txtGlobalPexelsQuery.Text.Trim();
+        _settings.GlobalSource.UnsplashQuery = string.IsNullOrWhiteSpace(txtGlobalUnsplashQuery.Text) ? "landscape" : txtGlobalUnsplashQuery.Text.Trim();
+        _settings.GlobalSource.UnsplashApiKey = txtGlobalUnsplashApiKey.Text.Trim();
 
         // 4. Save Language
         if (cbLanguage.SelectedItem is ComboBoxItem selectedLang)

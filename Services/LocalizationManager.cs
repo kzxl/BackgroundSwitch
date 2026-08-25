@@ -38,14 +38,34 @@ public static class LocalizationManager
         { "UI_ModeSpan", ("Span across monitors", "Trải rộng (Span)") },
         { "UI_ScaleLabel", ("Scale:", "Căn chỉnh:") },
         { "UI_SourceSection", ("🌐 Wallpaper Source", "🌐 Nguồn hình nền") },
-        { "UI_SourceBing", ("Bing Daily 4K (Auto)", "Bing Daily 4K (Tự động)") },
+
+        // Providers
+        { "UI_SourceBing", ("Bing Daily 4K", "Bing Daily 4K (Tự động)") },
+        { "UI_SourceReddit", ("Reddit Wallpapers", "Reddit Wallpapers (r/...)") },
+        { "UI_SourceWallhaven", ("Wallhaven 4K/8K", "Wallhaven 4K/8K") },
+        { "UI_SourceNasa", ("NASA APOD Space", "NASA Vũ trụ (APOD)") },
         { "UI_SourceLocal", ("Local Folder", "Thư mục Local") },
-        { "UI_SourcePexels", ("Pexels API (Online)", "Pexels API (Online)") },
+        { "UI_SourcePexels", ("Pexels API", "Pexels API") },
+        { "UI_SourceUnsplash", ("Unsplash Photos", "Unsplash Photos") },
+
+        // Provider Options & Descriptions
         { "UI_LocalFolderPath", ("Local Folder Path:", "Đường dẫn thư mục ảnh:") },
         { "UI_BrowseBtn", ("📁 Browse", "📁 Chọn") },
         { "UI_PexelsApiKey", ("Pexels API Key:", "Pexels API Key:") },
         { "UI_PexelsQuery", ("Search Keyword:", "Từ khóa tìm kiếm:") },
+        { "UI_RedditSub", ("Subreddit (e.g. wallpapers, EarthPorn, spaceporn, AnimeWallpaper):", "Tên Subreddit (vd: wallpapers, EarthPorn, spaceporn, AnimeWallpaper):") },
+        { "UI_WallhavenQuery", ("Search Keyword (e.g. nature, anime, cyberpunk, car):", "Từ khóa tìm kiếm (vd: nature, anime, cyberpunk, car):") },
+        { "UI_WallhavenApiKey", ("Wallhaven API Key (Optional for NSFW):", "Wallhaven API Key (Tùy chọn):") },
+        { "UI_UnsplashQuery", ("Search Keyword:", "Từ khóa tìm kiếm:") },
+        { "UI_UnsplashApiKey", ("Unsplash Access Key (Optional):", "Unsplash Access Key (Tùy chọn):") },
+
         { "UI_BingDesc", ("✨ Automatically downloads Microsoft Bing's Ultra HD wallpaper every day. No API key required.", "✨ Tự động tải hình ảnh Ultra HD chất lượng cao mỗi ngày của Microsoft Bing. Không cần API key.") },
+        { "UI_RedditDesc", ("✨ Fetches high-resolution wallpapers from Reddit communities. No API key required.", "✨ Tự động lấy ảnh độ phân giải cao từ cộng đồng Reddit. Không cần API key.") },
+        { "UI_WallhavenDesc", ("✨ World's largest 2K/4K/8K desktop wallpaper collection by tags & categories.", "✨ Kho hình nền 2K/4K/8K từ Wallhaven theo từ khóa và chủ đề.") },
+        { "UI_NasaDesc", ("✨ NASA's official Astronomy Picture of the Day (James Webb & Hubble telescopes).", "✨ Ảnh thiên văn và vũ trụ chính thức mỗi ngày của NASA (kính James Webb & Hubble).") },
+        { "UI_UnsplashDesc", ("✨ High-resolution artistic landscape photography from top photographers.", "✨ Nhiếp ảnh nghệ thuật phong cảnh độ phân giải cao từ các nhiếp ảnh gia hàng đầu.") },
+
+        // General
         { "UI_PerMonitorSection", ("🎛️ Per-Monitor Configuration", "🎛️ Cấu hình từng Màn hình") },
         { "UI_GeneralSection", ("⚙️ General Settings", "⚙️ Cài đặt Chung & Vận hành") },
         { "UI_IntervalLabel", ("Change Interval (Minutes):", "Tần suất đổi (Phút):") },
