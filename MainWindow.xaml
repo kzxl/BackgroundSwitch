@@ -614,23 +614,31 @@
                     </Border>
                 </StackPanel>
 
-                <!-- ==================== TAB 1: DISPLAYS & LAYOUT ==================== -->
+                <!-- ==================== TAB 1: DISPLAYS & LAYOUT 2.0 ==================== -->
                 <StackPanel Visibility="{Binding IsTabDisplays, Converter={StaticResource BoolToVis}}">
-                    <!-- Display Mode Card -->
+                    <!-- Display Mode & Scale Card -->
                     <Border Background="{StaticResource BrushBgCard}" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1" CornerRadius="10" Padding="18" Margin="0,0,0,16">
                         <StackPanel>
                             <TextBlock Text="{Binding ModeSectionText}" FontWeight="Bold" FontSize="14" Foreground="{StaticResource BrushPrimaryAccent}" Margin="0,0,0,12"/>
                             
-                            <Grid Margin="0,0,0,16">
+                            <Grid Margin="0,0,0,14">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <RadioButton Grid.Column="0" Content="{Binding ModeSyncedText}" IsChecked="{Binding IsModeSynced, Mode=TwoWay}" FontSize="13"/>
-                                <RadioButton Grid.Column="1" Content="{Binding ModePerMonitorText}" IsChecked="{Binding IsModePerMonitor, Mode=TwoWay}" FontSize="13"/>
-                                <RadioButton Grid.Column="2" Content="{Binding ModeSpanText}" IsChecked="{Binding IsModeSpan, Mode=TwoWay}" FontSize="13"/>
+                                <RadioButton Grid.Column="0" Content="{Binding ModeSyncedText}" IsChecked="{Binding IsModeSynced, Mode=TwoWay}" FontSize="13" Cursor="Hand"/>
+                                <RadioButton Grid.Column="1" Content="{Binding ModePerMonitorText}" IsChecked="{Binding IsModePerMonitor, Mode=TwoWay}" FontSize="13" Cursor="Hand"/>
+                                <RadioButton Grid.Column="2" Content="{Binding ModeSpanText}" IsChecked="{Binding IsModeSpan, Mode=TwoWay}" FontSize="13" Cursor="Hand"/>
                             </Grid>
+
+                            <!-- Informational Banner based on Active Mode -->
+                            <Border Visibility="{Binding IsModePerMonitor, Converter={StaticResource BoolToVis}}" Background="#132738" BorderBrush="#38BDF8" BorderThickness="1" CornerRadius="6" Padding="12,10" Margin="0,0,0,14">
+                                <TextBlock Text="{Binding PerMonitorActiveBannerText}" TextWrapping="Wrap" Foreground="#7DD3FC" FontSize="12" LineHeight="17"/>
+                            </Border>
+                            <Border Visibility="{Binding IsModeSynced, Converter={StaticResource BoolToVis}}" Background="#1E1E2E" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1" CornerRadius="6" Padding="12,10" Margin="0,0,0,14">
+                                <TextBlock Text="{Binding SyncedActiveBannerText}" TextWrapping="Wrap" Foreground="{StaticResource BrushTextSecondary}" FontSize="12" LineHeight="17"/>
+                            </Border>
 
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -650,26 +658,115 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- Connected Monitors List -->
+                    <!-- Connected Monitors Topology & Per-Monitor Setup -->
                     <Border Background="{StaticResource BrushBgCard}" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1" CornerRadius="10" Padding="18">
                         <StackPanel>
-                            <TextBlock Text="{Binding DetectedMonitorsTitleText}" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushPrimaryAccent}" Margin="0,0,0,12"/>
+                            <TextBlock Text="{Binding DetectedMonitorsTitleText}" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushPrimaryAccent}" Margin="0,0,0,14"/>
+                            
                             <ItemsControl ItemsSource="{Binding Monitors}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <Border Background="{StaticResource BrushBgCardElevated}" CornerRadius="8" Padding="14,10" Margin="0,0,0,8" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1">
+                                        <Border Background="{StaticResource BrushBgCardElevated}" CornerRadius="10" Padding="16" Margin="0,0,0,12" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1">
                                             <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                </Grid.ColumnDefinitions>
-                                                <StackPanel>
-                                                    <TextBlock Text="{Binding FriendlyName}" FontWeight="Bold" Foreground="{StaticResource BrushTextPrimary}" FontSize="13"/>
-                                                    <TextBlock Text="{Binding DeviceName}" Foreground="{StaticResource BrushTextSecondary}" FontSize="11.5" Margin="0,2,0,0"/>
-                                                </StackPanel>
-                                                <Border Grid.Column="1" Background="#1C382A" CornerRadius="4" Padding="8,3" VerticalAlignment="Center">
-                                                    <TextBlock Text="{Binding DataContext.ConnectedStatusText, RelativeSource={RelativeSource AncestorType=Window}}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource BrushSuccessAccent}"/>
-                                                </Border>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto"/> <!-- Card Header -->
+                                                    <RowDefinition Height="Auto"/> <!-- Card Body -->
+                                                </Grid.RowDefinitions>
+
+                                                <!-- Header Bar: Monitor Title, Resolution, Primary Badge -->
+                                                <Grid Grid.Row="0" Margin="0,0,0,12">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <Border Background="{StaticResource BrushBgDark}" CornerRadius="6" Padding="8,4" Margin="0,0,10,0">
+                                                            <TextBlock Text="{Binding DisplayTitle}" FontWeight="Bold" Foreground="{StaticResource BrushPrimaryAccent}" FontSize="13"/>
+                                                        </Border>
+                                                        <TextBlock Text="{Binding ResolutionText}" Foreground="{StaticResource BrushTextSecondary}" FontSize="12" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                                        
+                                                        <Border Background="#1C382A" CornerRadius="4" Padding="6,2" VerticalAlignment="Center" Margin="0,0,6,0"
+                                                                Visibility="{Binding IsPrimary, Converter={StaticResource BoolToVis}}">
+                                                            <TextBlock Text="{Binding PrimaryBadgeText}" FontSize="10.5" FontWeight="Bold" Foreground="{StaticResource BrushSuccessAccent}"/>
+                                                        </Border>
+                                                    </StackPanel>
+
+                                                    <Border Grid.Column="1" Background="#1C382A" CornerRadius="4" Padding="8,3" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding DataContext.ConnectedStatusText, RelativeSource={RelativeSource AncestorType=Window}}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource BrushSuccessAccent}"/>
+                                                    </Border>
+                                                </Grid>
+
+                                                <!-- Body: Live Thumbnail on Left + Per-Monitor Source Config on Right -->
+                                                <Grid Grid.Row="1">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="180"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <!-- Left: Live Thumbnail with Fallback Placeholder -->
+                                                    <StackPanel Grid.Column="0">
+                                                        <Border Height="105" Width="170" HorizontalAlignment="Left" CornerRadius="8" Background="#11131F" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1" ClipToBounds="True">
+                                                            <Grid>
+                                                                <Image Source="{Binding CurrentWallpaperPath, Converter={StaticResource ImagePathToBitmap}}" Stretch="UniformToFill"/>
+                                                                <TextBlock Text="{Binding DataContext.PreviewPlaceholderText, RelativeSource={RelativeSource AncestorType=Window}}" 
+                                                                           FontSize="11" Foreground="{StaticResource BrushTextMuted}" 
+                                                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                           Visibility="{Binding HasWallpaper, Converter={StaticResource InverseBoolToVis}}"/>
+                                                            </Grid>
+                                                        </Border>
+                                                        <TextBlock Text="{Binding WallpaperFileName}" FontSize="11" Foreground="{StaticResource BrushTextMuted}" TextTrimming="CharacterEllipsis" Margin="2,4,10,0" ToolTip="{Binding CurrentWallpaperPath}"/>
+                                                    </StackPanel>
+
+                                                    <!-- Right: Per-Monitor Source Selector & Specific Controls -->
+                                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0">
+                                                        <!-- Source Selector for this Monitor -->
+                                                        <Grid Margin="0,0,0,8">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="130"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Text="{Binding SourceLabelText}" VerticalAlignment="Center" FontSize="12.5" FontWeight="SemiBold"/>
+                                                            <ComboBox Grid.Column="1" SelectedValue="{Binding SelectedSourceType, Mode=TwoWay}" SelectedValuePath="Tag">
+                                                                <ComboBoxItem Content="{Binding SourceUseGlobalText}" Tag="UseGlobal"/>
+                                                                <ComboBoxItem Content="📷 Pexels API" Tag="Pexels"/>
+                                                                <ComboBoxItem Content="🎨 Wallhaven 4K/8K" Tag="Wallhaven"/>
+                                                                <ComboBoxItem Content="🌅 Bing Daily 4K" Tag="BingDaily"/>
+                                                                <ComboBoxItem Content="🤖 Reddit Wallpapers" Tag="Reddit"/>
+                                                                <ComboBoxItem Content="📁 Thư mục Local" Tag="Local"/>
+                                                                <ComboBoxItem Content="🚀 NASA APOD Space" Tag="Nasa"/>
+                                                                <ComboBoxItem Content="🌄 Unsplash Photos" Tag="Unsplash"/>
+                                                            </ComboBox>
+                                                        </Grid>
+
+                                                        <!-- Local folder picker for this monitor -->
+                                                        <Grid Margin="0,0,0,8" Visibility="{Binding IsLocalSource, Converter={StaticResource BoolToVis}}">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="130"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Text="{Binding FolderLabelText}" VerticalAlignment="Center" FontSize="12" Foreground="{StaticResource BrushTextSecondary}"/>
+                                                            <TextBox Grid.Column="1" Text="{Binding CustomFolderPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                                            <Button Grid.Column="2" Content="{Binding BrowseBtnText}" Command="{Binding BrowseFolderCommand}" Style="{StaticResource SecondaryButton}" Margin="8,0,0,0" Padding="10,4"/>
+                                                        </Grid>
+
+                                                        <!-- Query input for this monitor (Pexels, Wallhaven, Reddit, Unsplash) -->
+                                                        <Grid Margin="0,0,0,8" Visibility="{Binding IsQuerySource, Converter={StaticResource BoolToVis}}">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="130"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Text="{Binding KeywordsLabelText}" VerticalAlignment="Center" FontSize="12" Foreground="{StaticResource BrushTextSecondary}"/>
+                                                            <TextBox Grid.Column="1" Text="{Binding CustomQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                                        </Grid>
+
+                                                        <!-- Action: Rotate Wallpaper immediately for this Monitor -->
+                                                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                                            <Button Content="{Binding ChangeThisBtnText}" Command="{Binding ChangeWallpaperCommand}" Style="{StaticResource AccentButton}" Padding="14,6" FontSize="12"/>
+                                                        </StackPanel>
+                                                    </StackPanel>
+                                                </Grid>
                                             </Grid>
                                         </Border>
                                     </DataTemplate>

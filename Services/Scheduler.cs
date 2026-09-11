@@ -132,48 +132,61 @@ public class Scheduler : IDisposable
 
             bool anySuccess = false;
 
-            if (_settings.Mode == WallpaperMode.PerMonitor && _settings.Monitors.Count > 0)
+            if (_settings.Mode == WallpaperMode.PerMonitor)
             {
                 var currentMonitors = WallpaperManager.GetMonitors();
-                var tasks = new List<Task<bool>>();
+                var usedPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
                 foreach (var monitor in currentMonitors)
                 {
+                    if (token.IsCancellationRequested) break;
+
                     var monConfig = _settings.Monitors.FirstOrDefault(m => 
                         (!string.IsNullOrEmpty(m.MonitorId) && m.MonitorId == monitor.MonitorId) ||
-                        (!string.IsNullOrEmpty(m.DeviceName) && m.DeviceName == monitor.DeviceName)) 
-                        ?? new MonitorConfig { Source = _settings.GlobalSource };
+                        (!string.IsNullOrEmpty(m.DeviceName) && m.DeviceName == monitor.DeviceName));
 
-                    var provider = ResolveProvider(monConfig.Source);
+                    var sourceConfig = (monConfig?.Source != null && !string.Equals(monConfig.Source.Type, "UseGlobal", StringComparison.OrdinalIgnoreCase))
+                        ? monConfig.Source
+                        : _settings.GlobalSource;
+
+                    var provider = ResolveProvider(sourceConfig);
                     var monId = monitor.MonitorId;
 
-                    tasks.Add(Task.Run(async () =>
+                    string? imgPath = null;
+                    // Anti-duplicate attempt: try up to 3 times to get an image not yet used for another monitor
+                    for (int retry = 0; retry < 3; retry++)
                     {
-                        var imgPath = await provider.GetNextImagePathAsync(token);
-                        if (!string.IsNullOrEmpty(imgPath) && !token.IsCancellationRequested)
+                        var candidate = await provider.GetNextImagePathAsync(token);
+                        if (!string.IsNullOrEmpty(candidate))
                         {
-                            var meta = WallpaperMetadataManager.Instance.GetMetadata(imgPath);
-                            string applied = imgPath;
-
-                            if (_settings.ShowWallpaperInfoOnDesktop && meta != null)
+                            imgPath = candidate;
+                            if (!usedPaths.Contains(candidate))
                             {
-                                applied = WallpaperWatermarkService.CreateWatermarkedWallpaper(imgPath, meta);
-                            }
-
-                            bool ok = WallpaperManager.SetWallpaper(monId, applied);
-                            if (ok)
-                            {
-                                CurrentWallpapers[monId] = imgPath;
-                                History.Push(imgPath);
-                                return true;
+                                break;
                             }
                         }
-                        return false;
-                    }, token));
-                }
+                    }
 
-                var results = await Task.WhenAll(tasks);
-                anySuccess = results.Any(r => r);
+                    if (!string.IsNullOrEmpty(imgPath) && !token.IsCancellationRequested)
+                    {
+                        usedPaths.Add(imgPath);
+                        var meta = WallpaperMetadataManager.Instance.GetMetadata(imgPath);
+                        string applied = imgPath;
+
+                        if (_settings.ShowWallpaperInfoOnDesktop && meta != null)
+                        {
+                            applied = WallpaperWatermarkService.CreateWatermarkedWallpaper(imgPath, meta);
+                        }
+
+                        bool ok = WallpaperManager.SetWallpaper(monId, applied);
+                        if (ok)
+                        {
+                            CurrentWallpapers[monId] = imgPath;
+                            History.Push(imgPath);
+                            anySuccess = true;
+                        }
+                    }
+                }
             }
             else
             {
@@ -251,18 +264,43 @@ public class Scheduler : IDisposable
         await ChangeWallpaperAsync();
     }
 
-    public async Task ChangeWallpaperForMonitorAsync(uint monitorIndex)
+    public async Task<bool> ChangeWallpaperForMonitorAsync(string monitorId)
     {
         var monitors = WallpaperManager.GetMonitors();
-        if (monitorIndex >= monitors.Count) return;
+        var monitor = monitors.FirstOrDefault(m => 
+            (!string.IsNullOrEmpty(m.MonitorId) && m.MonitorId == monitorId) ||
+            (!string.IsNullOrEmpty(m.DeviceName) && m.DeviceName == monitorId));
 
-        var monitor = monitors[(int)monitorIndex];
-        var monConfig = _settings.Monitors.FirstOrDefault(m => m.MonitorId == monitor.MonitorId)
-                        ?? new MonitorConfig { Source = _settings.GlobalSource };
+        if (monitor == null) return false;
 
-        var provider = ResolveProvider(monConfig.Source);
+        WallpaperManager.SetPosition(_settings.Scale);
+
+        var monConfig = _settings.Monitors.FirstOrDefault(m => 
+            (!string.IsNullOrEmpty(m.MonitorId) && m.MonitorId == monitor.MonitorId) ||
+            (!string.IsNullOrEmpty(m.DeviceName) && m.DeviceName == monitor.DeviceName));
+
+        var sourceConfig = (monConfig?.Source != null && !string.Equals(monConfig.Source.Type, "UseGlobal", StringComparison.OrdinalIgnoreCase))
+            ? monConfig.Source
+            : _settings.GlobalSource;
+
+        var provider = ResolveProvider(sourceConfig);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-        var imgPath = await provider.GetNextImagePathAsync(cts.Token);
+
+        var usedPaths = new HashSet<string>(CurrentWallpapers.Values.Where(p => !string.IsNullOrEmpty(p)), StringComparer.OrdinalIgnoreCase);
+
+        string? imgPath = null;
+        for (int retry = 0; retry < 3; retry++)
+        {
+            var candidate = await provider.GetNextImagePathAsync(cts.Token);
+            if (!string.IsNullOrEmpty(candidate))
+            {
+                imgPath = candidate;
+                if (!usedPaths.Contains(candidate))
+                {
+                    break;
+                }
+            }
+        }
 
         if (!string.IsNullOrEmpty(imgPath))
         {
@@ -274,10 +312,25 @@ public class Scheduler : IDisposable
                 applied = WallpaperWatermarkService.CreateWatermarkedWallpaper(imgPath, meta);
             }
 
-            WallpaperManager.SetWallpaper(monitor.MonitorId, applied);
-            CurrentWallpapers[monitor.MonitorId] = imgPath;
-            History.Push(imgPath);
-            OnWallpaperChanged?.Invoke();
+            bool ok = WallpaperManager.SetWallpaper(monitor.MonitorId, applied);
+            if (ok)
+            {
+                CurrentWallpapers[monitor.MonitorId] = imgPath;
+                History.Push(imgPath);
+                OnWallpaperChanged?.Invoke();
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public async Task ChangeWallpaperForMonitorAsync(uint monitorIndex)
+    {
+        var monitors = WallpaperManager.GetMonitors();
+        if (monitorIndex < monitors.Count)
+        {
+            await ChangeWallpaperForMonitorAsync(monitors[(int)monitorIndex].MonitorId);
         }
     }
 

@@ -15,7 +15,12 @@ public class MonitorInfoItem
     public string FriendlyName { get; set; } = string.Empty;
     public int Width { get; set; }
     public int Height { get; set; }
+    public int Left { get; set; }
+    public int Top { get; set; }
+    public int Right { get; set; }
+    public int Bottom { get; set; }
     public bool IsPrimary { get; set; }
+    public string CurrentWallpaper { get; set; } = string.Empty;
 }
 
 public static class WallpaperManager
@@ -94,6 +99,13 @@ public static class WallpaperManager
                 var deviceName = matchingScreen?.DeviceName ?? $"\\\\.\\DISPLAY{i + 1}";
                 var isPrimary = matchingScreen?.Primary ?? (i == 0);
 
+                string currentWp = string.Empty;
+                try
+                {
+                    currentWp = desktopWallpaper.GetWallpaper(monitorId) ?? string.Empty;
+                }
+                catch { }
+
                 list.Add(new MonitorInfoItem
                 {
                     Index = i,
@@ -102,7 +114,12 @@ public static class WallpaperManager
                     FriendlyName = $"Màn hình {i + 1}{(isPrimary ? " (Chính)" : "")} - {w}x{h}",
                     Width = w,
                     Height = h,
-                    IsPrimary = isPrimary
+                    Left = rect.Left,
+                    Top = rect.Top,
+                    Right = rect.Right,
+                    Bottom = rect.Bottom,
+                    IsPrimary = isPrimary,
+                    CurrentWallpaper = currentWp
                 });
             }
         }
@@ -122,12 +139,41 @@ public static class WallpaperManager
                     FriendlyName = $"Màn hình {i + 1}{(screens[i].Primary ? " (Chính)" : "")} - {screens[i].Bounds.Width}x{screens[i].Bounds.Height}",
                     Width = screens[i].Bounds.Width,
                     Height = screens[i].Bounds.Height,
-                    IsPrimary = screens[i].Primary
+                    Left = screens[i].Bounds.Left,
+                    Top = screens[i].Bounds.Top,
+                    Right = screens[i].Bounds.Right,
+                    Bottom = screens[i].Bounds.Bottom,
+                    IsPrimary = screens[i].Primary,
+                    CurrentWallpaper = string.Empty
                 });
             }
         }
 
         return list;
+    }
+
+    public static string GetWallpaper(string? monitorId)
+    {
+        try
+        {
+            var desktopWallpaper = (IDesktopWallpaper)new DesktopWallpaper();
+            if (!string.IsNullOrWhiteSpace(monitorId))
+            {
+                return desktopWallpaper.GetWallpaper(monitorId) ?? string.Empty;
+            }
+
+            uint count = desktopWallpaper.GetMonitorDevicePathCount();
+            if (count > 0)
+            {
+                desktopWallpaper.GetMonitorDevicePathAt(0, out var firstId);
+                return desktopWallpaper.GetWallpaper(firstId) ?? string.Empty;
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[WallpaperManager] COM GetWallpaper error: {ex.Message}");
+        }
+        return string.Empty;
     }
 
     public static bool SetWallpaper(string? monitorId, string? imagePath)
@@ -138,7 +184,7 @@ public static class WallpaperManager
             return false;
         }
 
-        bool success = false;
+        bool comSuccess = false;
 
         // 1. Try Windows COM IDesktopWallpaper
         try
@@ -147,12 +193,14 @@ public static class WallpaperManager
 
             if (!string.IsNullOrWhiteSpace(monitorId))
             {
+                // CRITICAL: When setting per-monitor wallpaper, ONLY call COM SetWallpaper.
+                // NEVER call SystemParametersInfo here as it will broadcast and overwrite ALL monitors!
                 desktopWallpaper.SetWallpaper(monitorId, imagePath);
-                success = true;
+                return true;
             }
             else
             {
-                // Synced mode: set on each monitor explicitly + broadcast
+                // Synced mode: set on each monitor explicitly
                 uint count = desktopWallpaper.GetMonitorDevicePathCount();
                 if (count > 0)
                 {
@@ -164,12 +212,12 @@ public static class WallpaperManager
                             desktopWallpaper.SetWallpaper(mId, imagePath);
                         }
                     }
-                    success = true;
+                    comSuccess = true;
                 }
                 else
                 {
                     desktopWallpaper.SetWallpaper(null, imagePath);
-                    success = true;
+                    comSuccess = true;
                 }
             }
         }
@@ -178,21 +226,27 @@ public static class WallpaperManager
             System.Diagnostics.Debug.WriteLine($"[WallpaperManager] COM SetWallpaper error: {ex.Message}");
         }
 
-        // 2. Always trigger Win32 SystemParametersInfo for instant refresh broadcast
-        try
+        // If COM succeeded for Synced mode, we're done
+        if (comSuccess)
         {
-            int result = SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, imagePath, SPIF_UPDATEINIFILE | SPIF_SENDCHANGE);
-            if (result != 0)
-            {
-                success = true;
-            }
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"[WallpaperManager] SystemParametersInfo error: {ex.Message}");
+            return true;
         }
 
-        return success;
+        // 2. Fallback to Win32 SystemParametersInfo ONLY when monitorId is null (Synced mode fallback)
+        if (string.IsNullOrWhiteSpace(monitorId))
+        {
+            try
+            {
+                int result = SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, imagePath, SPIF_UPDATEINIFILE | SPIF_SENDCHANGE);
+                return result != 0;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[WallpaperManager] SystemParametersInfo error: {ex.Message}");
+            }
+        }
+
+        return false;
     }
 
     public static void SetPosition(WallpaperScale scale)

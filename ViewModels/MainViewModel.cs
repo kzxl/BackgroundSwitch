@@ -50,8 +50,11 @@ public class MainViewModel : ViewModelBase
     private string _statusSeverity = "Info"; // "Success", "Info", "Warning", "Error"
     private bool _isStatusVisible;
 
-    public ObservableCollection<MonitorInfoItem> Monitors { get; } = [];
+    public ObservableCollection<MonitorItemViewModel> Monitors { get; } = [];
     public ObservableCollection<int> CacheLimitOptions { get; } = [5, 10, 20, 50];
+
+    public string PerMonitorActiveBannerText => LocalizationManager.Get("UI_PerMonitorActiveBanner");
+    public string SyncedActiveBannerText => LocalizationManager.Get("UI_SyncedActiveBanner");
 
     // Commands
     public ICommand SelectTabCommand { get; }
@@ -157,6 +160,18 @@ public class MainViewModel : ViewModelBase
             CurrentWallpaperPath = _scheduler.GetCurrentActiveWallpaperPath();
             BlacklistCount = BlacklistManager.Instance.Count;
             RefreshCacheStats();
+
+            foreach (var mon in Monitors)
+            {
+                if (_scheduler.CurrentWallpapers.TryGetValue(mon.MonitorId, out var p) && !string.IsNullOrEmpty(p))
+                {
+                    mon.CurrentWallpaperPath = p;
+                }
+                else if (Mode != WallpaperMode.PerMonitor && !string.IsNullOrEmpty(CurrentWallpaperPath))
+                {
+                    mon.CurrentWallpaperPath = CurrentWallpaperPath;
+                }
+            }
         }));
     }
 
@@ -841,6 +856,13 @@ public class MainViewModel : ViewModelBase
         OnPropertyChanged(nameof(BlacklistHelpText));
         OnPropertyChanged(nameof(TrayActiveHintText));
         OnPropertyChanged(nameof(TrayActionHintText));
+        OnPropertyChanged(nameof(PerMonitorActiveBannerText));
+        OnPropertyChanged(nameof(SyncedActiveBannerText));
+
+        foreach (var mon in Monitors)
+        {
+            mon.RefreshLocalization();
+        }
 
         if (!IsChangingWallpaper)
         {
@@ -893,9 +915,15 @@ public class MainViewModel : ViewModelBase
 
         // Load Monitors
         Monitors.Clear();
-        foreach (var m in WallpaperManager.GetMonitors())
+        var currentMonitors = WallpaperManager.GetMonitors();
+        foreach (var m in currentMonitors)
         {
-            Monitors.Add(m);
+            var saved = _settings.Monitors.FirstOrDefault(x => 
+                (!string.IsNullOrEmpty(x.MonitorId) && x.MonitorId == m.MonitorId) ||
+                (!string.IsNullOrEmpty(x.DeviceName) && x.DeviceName == m.DeviceName));
+
+            var vm = new MonitorItemViewModel(m, saved, _scheduler, _settings, ShowToast);
+            Monitors.Add(vm);
         }
 
         BlacklistCount = BlacklistManager.Instance.Count;
@@ -927,16 +955,10 @@ public class MainViewModel : ViewModelBase
         _settings.GlobalSource.UnsplashQuery = string.IsNullOrWhiteSpace(UnsplashQuery) ? "landscape" : UnsplashQuery.Trim();
         _settings.GlobalSource.UnsplashApiKey = UnsplashApiKey.Trim();
 
-        var currentMonitors = WallpaperManager.GetMonitors();
-        _settings.Monitors = currentMonitors.Select(m => new MonitorConfig
+        foreach (var m in Monitors)
         {
-            MonitorId = m.MonitorId,
-            DeviceName = m.DeviceName,
-            FriendlyName = m.FriendlyName,
-            Width = m.Width,
-            Height = m.Height,
-            Source = _settings.GlobalSource
-        }).ToList();
+            m.SaveToSettingsConfig();
+        }
     }
 
     private void BrowseFolder()
