@@ -121,6 +121,10 @@ public static class LocalizationManager
         { "UI_TopicModeSequential", ("🔁 Sequential", "🔁 Lần lượt") },
         { "UI_TopicHelp", ("💡 Enter multiple topics separated by commas (e.g. nature, cyberpunk, anime, space)", "💡 Nhập nhiều chủ đề cách nhau bằng dấu phẩy (vd: nature, cyberpunk, anime, space)") },
         { "UI_ClearTopicsBtn", ("🧹 Clear All", "🧹 Xóa hết") },
+        { "UI_TestSampleBtn", ("⚡ Test Sample Preview", "⚡ Xem thử 1 ảnh mẫu") },
+        { "UI_TestSampleSuccess", ("Sample image loaded for preview (Desktop unchanged).", "Đã tải ảnh mẫu để xem trước (Chưa đổi màn hình).") },
+        { "UI_FrequencySliderLabel", ("Adjust Frequency Slider:", "Thanh trượt tùy chỉnh tần suất:") },
+        { "UI_NextCountdown", ("Next switch in:", "Tự động đổi sau:") },
 
         // Provider Summary Descriptions (Used when switching sources)
         { "UI_LocalDesc", ("📁 Scan and set wallpapers directly from your local computer folder.", "📁 Quét và đặt hình nền trực tiếp từ thư mục trên máy tính của bạn.") },

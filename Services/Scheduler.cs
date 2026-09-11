@@ -15,6 +15,7 @@ public class Scheduler : IDisposable
     private bool _isFirstRun = true;
 
     public bool IsPaused { get; private set; }
+    public DateTime NextChangeTime { get; private set; } = DateTime.Now;
     public WallpaperHistoryManager History { get; } = new();
     public ConcurrentDictionary<string, string> CurrentWallpapers { get; } = new();
 
@@ -30,6 +31,19 @@ public class Scheduler : IDisposable
         _providerFactory = providerFactory ?? ImageProviderFactory.Instance;
     }
 
+    public TimeSpan GetRemainingTime()
+    {
+        if (IsPaused || _timer == null) return TimeSpan.Zero;
+        var remaining = NextChangeTime - DateTime.Now;
+        return remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero;
+    }
+
+    public async Task<string?> FetchSampleImageAsync(ProviderConfig config, CancellationToken cancellationToken = default)
+    {
+        var provider = ResolveProvider(config);
+        return await provider.GetNextImagePathAsync(cancellationToken);
+    }
+
     public void UpdateSettings(AppSettings newSettings)
     {
         _settings = newSettings ?? throw new ArgumentNullException(nameof(newSettings));
@@ -37,6 +51,7 @@ public class Scheduler : IDisposable
         if (_timer != null)
         {
             _timer.Interval = Math.Max(1, _settings.IntervalMinutes) * 60 * 1000.0;
+            NextChangeTime = DateTime.Now.AddMinutes(Math.Max(1, _settings.IntervalMinutes));
         }
 
         // Apply scale position immediately
@@ -53,6 +68,7 @@ public class Scheduler : IDisposable
         else
         {
             _timer?.Start();
+            NextChangeTime = DateTime.Now.AddMinutes(Math.Max(1, _settings.IntervalMinutes));
         }
         OnPauseStateChanged?.Invoke(IsPaused);
     }
@@ -85,6 +101,7 @@ public class Scheduler : IDisposable
         });
 
         var intervalMs = Math.Max(1, _settings.IntervalMinutes) * 60 * 1000.0;
+        NextChangeTime = DateTime.Now.AddMinutes(Math.Max(1, _settings.IntervalMinutes));
         _timer = new System.Timers.Timer(intervalMs);
         _timer.Elapsed += async (_, _) =>
         {
@@ -219,6 +236,7 @@ public class Scheduler : IDisposable
 
             if (anySuccess)
             {
+                NextChangeTime = DateTime.Now.AddMinutes(Math.Max(1, _settings.IntervalMinutes));
                 OnWallpaperChanged?.Invoke();
             }
 

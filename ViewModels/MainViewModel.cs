@@ -50,6 +50,15 @@ public class MainViewModel : ViewModelBase
     private string _statusSeverity = "Info"; // "Success", "Info", "Warning", "Error"
     private bool _isStatusVisible;
 
+    // Countdown timer
+    private readonly System.Windows.Threading.DispatcherTimer _countdownTimer;
+    private string _nextSwitchCountdownText = string.Empty;
+    public string NextSwitchCountdownText
+    {
+        get => _nextSwitchCountdownText;
+        set => SetProperty(ref _nextSwitchCountdownText, value);
+    }
+
     public ObservableCollection<MonitorItemViewModel> Monitors { get; } = [];
     public ObservableCollection<int> CacheLimitOptions { get; } = [5, 10, 20, 50];
 
@@ -61,6 +70,7 @@ public class MainViewModel : ViewModelBase
     public ICommand BrowseFolderCommand { get; }
     public ICommand ClearBlacklistCommand { get; }
     public ICommand ChangeNowCommand { get; }
+    public ICommand TestSampleCommand { get; }
     public ICommand SaveCommand { get; }
     public ICommand SelectPexelsTagCommand { get; }
     public ICommand SelectRedditTagCommand { get; }
@@ -146,6 +156,16 @@ public class MainViewModel : ViewModelBase
         OpenFavoritesFolderCommand = new RelayCommand(OpenFavoritesFolder);
         BlacklistCurrentWallpaperCommand = new AsyncRelayCommand(BlacklistCurrentAsync);
         DismissStatusCommand = new RelayCommand(() => IsStatusVisible = false);
+        TestSampleCommand = new AsyncRelayCommand(TestSampleAsync, () => !IsChangingWallpaper);
+
+        // Setup 1-second countdown timer
+        _countdownTimer = new System.Windows.Threading.DispatcherTimer
+        {
+            Interval = TimeSpan.FromSeconds(1)
+        };
+        _countdownTimer.Tick += (s, e) => UpdateCountdownText();
+        _countdownTimer.Start();
+        UpdateCountdownText();
 
         // Listen to wallpaper changes from scheduler
         _scheduler.OnWallpaperChanged += OnWallpaperChangedCallback;
@@ -509,7 +529,15 @@ public class MainViewModel : ViewModelBase
     public int IntervalMinutes
     {
         get => _intervalMinutes;
-        set => SetProperty(ref _intervalMinutes, value);
+        set
+        {
+            if (SetProperty(ref _intervalMinutes, Math.Max(1, value)))
+            {
+                _settings.IntervalMinutes = _intervalMinutes;
+                _scheduler.UpdateSettings(_settings);
+                UpdateCountdownText();
+            }
+        }
     }
 
     public bool AutoStart
@@ -741,6 +769,11 @@ public class MainViewModel : ViewModelBase
     public string TrayActiveHintText => LocalizationManager.Get("UI_TrayActiveHint");
     public string TrayActionHintText => LocalizationManager.Get("UI_TrayActionHint");
 
+    // Dynamic enhancements
+    public string TestSampleBtnText => LocalizationManager.Get("UI_TestSampleBtn");
+    public string FrequencySliderLabelText => LocalizationManager.Get("UI_FrequencySliderLabel");
+    public string NextCountdownText => LocalizationManager.Get("UI_NextCountdown");
+
     public void RefreshLocalizationProperties()
     {
         OnPropertyChanged(nameof(AppTitleText));
@@ -858,6 +891,10 @@ public class MainViewModel : ViewModelBase
         OnPropertyChanged(nameof(TrayActionHintText));
         OnPropertyChanged(nameof(PerMonitorActiveBannerText));
         OnPropertyChanged(nameof(SyncedActiveBannerText));
+        OnPropertyChanged(nameof(TestSampleBtnText));
+        OnPropertyChanged(nameof(FrequencySliderLabelText));
+        OnPropertyChanged(nameof(NextCountdownText));
+        UpdateCountdownText();
 
         foreach (var mon in Monitors)
         {
@@ -1085,6 +1122,78 @@ public class MainViewModel : ViewModelBase
         CurrentWallpaperPath = _scheduler.GetCurrentActiveWallpaperPath();
         BlacklistCount = BlacklistManager.Instance.Count;
         ShowToast("Đã chặn ảnh hiện tại và chuyển sang ảnh mới.", "Info");
+    }
+
+    private ProviderConfig BuildCurrentProviderConfig()
+    {
+        return new ProviderConfig
+        {
+            Type = SourceType,
+            RedditSubreddit = string.IsNullOrWhiteSpace(RedditSubreddit) ? "wallpapers" : RedditSubreddit.Trim(),
+            WallhavenQuery = string.IsNullOrWhiteSpace(WallhavenQuery) ? "nature" : WallhavenQuery.Trim(),
+            WallhavenApiKey = WallhavenApiKey.Trim(),
+            LocalFolderPath = LocalFolderPath.Trim(),
+            PexelsApiKey = string.IsNullOrWhiteSpace(PexelsApiKey) ? ProviderConfig.DefaultPexelsApiKey : PexelsApiKey.Trim(),
+            PexelsQuery = string.IsNullOrWhiteSpace(PexelsQuery) ? "nature" : PexelsQuery.Trim(),
+            TopicMode = TopicMode,
+            UnsplashQuery = string.IsNullOrWhiteSpace(UnsplashQuery) ? "landscape" : UnsplashQuery.Trim(),
+            UnsplashApiKey = UnsplashApiKey.Trim()
+        };
+    }
+
+    private async Task TestSampleAsync()
+    {
+        if (IsChangingWallpaper) return;
+
+        try
+        {
+            IsChangingWallpaper = true;
+            ShowToast("⚡ " + (_language == "vietnamese" ? "Đang tải ảnh mẫu kiểm tra..." : "Fetching sample preview..."), "Info");
+
+            var config = BuildCurrentProviderConfig();
+            var samplePath = await _scheduler.FetchSampleImageAsync(config);
+
+            if (!string.IsNullOrEmpty(samplePath) && File.Exists(samplePath))
+            {
+                CurrentWallpaperPath = samplePath;
+                ShowToast(LocalizationManager.Get("UI_TestSampleSuccess"), "Success");
+            }
+            else
+            {
+                ShowToast("Không thể tải ảnh mẫu từ nguồn này. Vui lòng kiểm tra lại từ khóa hoặc kết nối mạng.", "Warning");
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowToast($"Lỗi tải ảnh mẫu: {ex.Message}", "Error");
+        }
+        finally
+        {
+            IsChangingWallpaper = false;
+        }
+    }
+
+    private void UpdateCountdownText()
+    {
+        if (_scheduler.IsPaused)
+        {
+            NextSwitchCountdownText = "⏸️ " + (Language == "vietnamese" ? "Đang tạm dừng" : "Paused");
+            return;
+        }
+
+        var remaining = _scheduler.GetRemainingTime();
+        if (remaining <= TimeSpan.Zero)
+        {
+            NextSwitchCountdownText = "⏳ " + (Language == "vietnamese" ? "Đang chuẩn bị đổi..." : "Switching soon...");
+        }
+        else if (remaining.TotalHours >= 1)
+        {
+            NextSwitchCountdownText = $"⏱️ {LocalizationManager.Get("UI_NextCountdown")} {(int)remaining.TotalHours}h {remaining.Minutes:D2}m {remaining.Seconds:D2}s";
+        }
+        else
+        {
+            NextSwitchCountdownText = $"⏱️ {LocalizationManager.Get("UI_NextCountdown")} {remaining.Minutes}m {remaining.Seconds:D2}s";
+        }
     }
 
     private async Task ChangeWallpaperNowAsync()
