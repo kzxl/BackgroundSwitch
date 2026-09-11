@@ -60,6 +60,7 @@ public class MainViewModel : ViewModelBase
     public ICommand SelectPexelsTagCommand { get; }
     public ICommand SelectRedditTagCommand { get; }
     public ICommand SelectWallhavenTagCommand { get; }
+    public ICommand ClearCurrentTopicsCommand { get; }
     public ICommand SelectIntervalPresetCommand { get; }
     public ICommand SaveCurrentPictureAsCommand { get; }
     public ICommand OpenCurrentInExplorerCommand { get; }
@@ -89,8 +90,8 @@ public class MainViewModel : ViewModelBase
         {
             if (p is string tag && !string.IsNullOrWhiteSpace(tag))
             {
-                PexelsQuery = tag;
-                ShowToast($"Đã chọn từ khóa: {tag}", "Info");
+                PexelsQuery = TopicResolver.ToggleTopic(PexelsQuery, tag);
+                ShowToast($"Chủ đề Pexels: {PexelsQuery}", "Info");
             }
         });
 
@@ -98,8 +99,8 @@ public class MainViewModel : ViewModelBase
         {
             if (p is string sub && !string.IsNullOrWhiteSpace(sub))
             {
-                RedditSubreddit = sub;
-                ShowToast($"Đã chọn subreddit: r/{sub}", "Info");
+                RedditSubreddit = TopicResolver.ToggleTopic(RedditSubreddit, sub);
+                ShowToast($"Subreddit: {RedditSubreddit}", "Info");
             }
         });
 
@@ -107,9 +108,18 @@ public class MainViewModel : ViewModelBase
         {
             if (p is string q && !string.IsNullOrWhiteSpace(q))
             {
-                WallhavenQuery = q;
-                ShowToast($"Đã chọn từ khóa: {q}", "Info");
+                WallhavenQuery = TopicResolver.ToggleTopic(WallhavenQuery, q);
+                ShowToast($"Chủ đề Wallhaven: {WallhavenQuery}", "Info");
             }
+        });
+
+        ClearCurrentTopicsCommand = new RelayCommand(() =>
+        {
+            if (IsSourcePexels) PexelsQuery = string.Empty;
+            else if (IsSourceWallhaven) WallhavenQuery = string.Empty;
+            else if (IsSourceReddit) RedditSubreddit = string.Empty;
+            else if (IsSourceUnsplash) UnsplashQuery = string.Empty;
+            ShowToast("Đã xóa danh sách chủ đề.", "Info");
         });
 
         SelectIntervalPresetCommand = new RelayCommand(p =>
@@ -395,6 +405,33 @@ public class MainViewModel : ViewModelBase
         set => SetProperty(ref _pexelsQuery, value);
     }
 
+    private TopicSelectionMode _topicMode = TopicSelectionMode.Random;
+
+    public TopicSelectionMode TopicMode
+    {
+        get => _topicMode;
+        set
+        {
+            if (SetProperty(ref _topicMode, value))
+            {
+                OnPropertyChanged(nameof(IsTopicModeRandom));
+                OnPropertyChanged(nameof(IsTopicModeSequential));
+            }
+        }
+    }
+
+    public bool IsTopicModeRandom
+    {
+        get => TopicMode == TopicSelectionMode.Random;
+        set { if (value) TopicMode = TopicSelectionMode.Random; }
+    }
+
+    public bool IsTopicModeSequential
+    {
+        get => TopicMode == TopicSelectionMode.Sequential;
+        set { if (value) TopicMode = TopicSelectionMode.Sequential; }
+    }
+
     public string UnsplashQuery
     {
         get => _unsplashQuery;
@@ -501,6 +538,11 @@ public class MainViewModel : ViewModelBase
     public string PexelsQueryLabelText => LocalizationManager.Get("UI_PexelsQuery");
     public string UnsplashQueryLabelText => LocalizationManager.Get("UI_UnsplashQuery");
     public string UnsplashApiKeyLabelText => LocalizationManager.Get("UI_UnsplashApiKey");
+    public string TopicModeLabelText => LocalizationManager.Get("UI_TopicModeLabel");
+    public string TopicModeRandomText => LocalizationManager.Get("UI_TopicModeRandom");
+    public string TopicModeSequentialText => LocalizationManager.Get("UI_TopicModeSequential");
+    public string TopicHelpText => LocalizationManager.Get("UI_TopicHelp");
+    public string ClearTopicsBtnText => LocalizationManager.Get("UI_ClearTopicsBtn");
 
     public string PerMonitorSectionText => LocalizationManager.Get("UI_PerMonitorSection");
     public string GeneralSectionText => LocalizationManager.Get("UI_GeneralSection");
@@ -537,6 +579,11 @@ public class MainViewModel : ViewModelBase
         OnPropertyChanged(nameof(PexelsQueryLabelText));
         OnPropertyChanged(nameof(UnsplashQueryLabelText));
         OnPropertyChanged(nameof(UnsplashApiKeyLabelText));
+        OnPropertyChanged(nameof(TopicModeLabelText));
+        OnPropertyChanged(nameof(TopicModeRandomText));
+        OnPropertyChanged(nameof(TopicModeSequentialText));
+        OnPropertyChanged(nameof(TopicHelpText));
+        OnPropertyChanged(nameof(ClearTopicsBtnText));
         OnPropertyChanged(nameof(PerMonitorSectionText));
         OnPropertyChanged(nameof(GeneralSectionText));
         OnPropertyChanged(nameof(IntervalLabelText));
@@ -587,6 +634,7 @@ public class MainViewModel : ViewModelBase
         LocalFolderPath = source.LocalFolderPath ?? string.Empty;
         PexelsApiKey = string.IsNullOrWhiteSpace(source.PexelsApiKey) ? ProviderConfig.DefaultPexelsApiKey : source.PexelsApiKey;
         PexelsQuery = string.IsNullOrWhiteSpace(source.PexelsQuery) ? "nature" : source.PexelsQuery;
+        TopicMode = source.TopicMode;
         UnsplashQuery = string.IsNullOrWhiteSpace(source.UnsplashQuery) ? "landscape" : source.UnsplashQuery;
         UnsplashApiKey = source.UnsplashApiKey ?? string.Empty;
 
@@ -618,6 +666,7 @@ public class MainViewModel : ViewModelBase
         _settings.GlobalSource.LocalFolderPath = LocalFolderPath.Trim();
         _settings.GlobalSource.PexelsApiKey = string.IsNullOrWhiteSpace(PexelsApiKey) ? ProviderConfig.DefaultPexelsApiKey : PexelsApiKey.Trim();
         _settings.GlobalSource.PexelsQuery = string.IsNullOrWhiteSpace(PexelsQuery) ? "nature" : PexelsQuery.Trim();
+        _settings.GlobalSource.TopicMode = TopicMode;
         _settings.GlobalSource.UnsplashQuery = string.IsNullOrWhiteSpace(UnsplashQuery) ? "landscape" : UnsplashQuery.Trim();
         _settings.GlobalSource.UnsplashApiKey = UnsplashApiKey.Trim();
 

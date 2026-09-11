@@ -1,24 +1,28 @@
 using System.Net.Http;
 using System.Text.Json;
+using BackgroundSwitch.Models;
 using BackgroundSwitch.Services;
 
 namespace BackgroundSwitch.Providers;
 
 public class RedditImageProvider : BaseHttpImageProvider
 {
-    private readonly string _subreddit;
+    private readonly string _rawSubreddit;
+    private readonly TopicSelectionMode _topicMode;
     private readonly Random _random = new();
 
-    public RedditImageProvider(string? subreddit)
+    public RedditImageProvider(string? subreddit, TopicSelectionMode topicMode = TopicSelectionMode.Random)
     {
-        _subreddit = string.IsNullOrWhiteSpace(subreddit) ? "wallpapers" : subreddit.Trim().TrimStart('r', '/');
+        _rawSubreddit = string.IsNullOrWhiteSpace(subreddit) ? "wallpapers" : subreddit.Trim();
+        _topicMode = topicMode;
     }
 
     public override async Task<string?> GetNextImagePathAsync(CancellationToken cancellationToken = default)
     {
         try
         {
-            string url = $"https://www.reddit.com/r/{Uri.EscapeDataString(_subreddit)}/hot.json?limit=50";
+            var activeSub = TopicResolver.ResolveTopic(_rawSubreddit, _topicMode, "Reddit", "wallpapers").TrimStart('r', '/');
+            string url = $"https://www.reddit.com/r/{Uri.EscapeDataString(activeSub)}/hot.json?limit=50";
             using var request = new HttpRequestMessage(HttpMethod.Get, url);
             request.Headers.Add("User-Agent", "BackgroundSwitch/1.0 (Windows NT 10.0; Win64; x64)");
 
@@ -62,7 +66,7 @@ public class RedditImageProvider : BaseHttpImageProvider
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[RedditImageProvider] Error fetching from r/{_subreddit}: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[RedditImageProvider] Error fetching from r/{_rawSubreddit}: {ex.Message}");
         }
 
         return null;

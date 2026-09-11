@@ -21,6 +21,12 @@ public enum WallpaperScale
     Span = 5
 }
 
+public enum TopicSelectionMode
+{
+    Random = 0,     // Ngẫu nhiên các topic trong danh sách
+    Sequential = 1  // Lần lượt theo thứ tự vòng tròn (Round-Robin)
+}
+
 public class ProviderConfig
 {
     public const string DefaultPexelsApiKey = "3zV2AOzguJiTCbhfkJ23RX9OKmVTECdaHr4K25jL184ojUFwz4KrOJA2";
@@ -29,6 +35,7 @@ public class ProviderConfig
     public string LocalFolderPath { get; set; } = string.Empty;
     public string PexelsApiKey { get; set; } = DefaultPexelsApiKey;
     public string PexelsQuery { get; set; } = "nature";
+    public TopicSelectionMode TopicMode { get; set; } = TopicSelectionMode.Random;
 
     // New Providers Config
     public string RedditSubreddit { get; set; } = "wallpapers"; // "wallpapers", "EarthPorn", "spaceporn", "AnimeWallpaper"
@@ -90,6 +97,13 @@ public class AppSettings
     {
         get => GlobalSource.PexelsQuery;
         set { if (value != null) GlobalSource.PexelsQuery = value; }
+    }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public TopicSelectionMode? TopicMode
+    {
+        get => GlobalSource.TopicMode;
+        set { if (value.HasValue) GlobalSource.TopicMode = value.Value; }
     }
 
     public static AppSettings Load()

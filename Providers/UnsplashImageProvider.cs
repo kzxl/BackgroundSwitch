@@ -1,5 +1,6 @@
 using System.Net.Http;
 using System.Text.Json;
+using BackgroundSwitch.Models;
 using BackgroundSwitch.Services;
 
 namespace BackgroundSwitch.Providers;
@@ -7,22 +8,25 @@ namespace BackgroundSwitch.Providers;
 public class UnsplashImageProvider : BaseHttpImageProvider
 {
     private readonly string _apiKey;
-    private readonly string _query;
+    private readonly string _rawQuery;
+    private readonly TopicSelectionMode _topicMode;
 
-    public UnsplashImageProvider(string? apiKey, string? query)
+    public UnsplashImageProvider(string? apiKey, string? query, TopicSelectionMode topicMode = TopicSelectionMode.Random)
     {
         _apiKey = apiKey?.Trim() ?? string.Empty;
-        _query = string.IsNullOrWhiteSpace(query) ? "landscape" : query.Trim();
+        _rawQuery = string.IsNullOrWhiteSpace(query) ? "landscape" : query.Trim();
+        _topicMode = topicMode;
     }
 
     public override async Task<string?> GetNextImagePathAsync(CancellationToken cancellationToken = default)
     {
         try
         {
+            var currentTopic = TopicResolver.ResolveTopic(_rawQuery, _topicMode, "Unsplash", "landscape");
             string url;
             if (!string.IsNullOrEmpty(_apiKey))
             {
-                url = $"https://api.unsplash.com/photos/random?query={Uri.EscapeDataString(_query)}&orientation=landscape&client_id={Uri.EscapeDataString(_apiKey)}";
+                url = $"https://api.unsplash.com/photos/random?query={Uri.EscapeDataString(currentTopic)}&orientation=landscape&client_id={Uri.EscapeDataString(_apiKey)}";
             }
             else
             {
@@ -60,7 +64,7 @@ public class UnsplashImageProvider : BaseHttpImageProvider
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[UnsplashImageProvider] Error fetching from Unsplash ({_query}): {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[UnsplashImageProvider] Error fetching from Unsplash ({_rawQuery}): {ex.Message}");
         }
 
         return null;

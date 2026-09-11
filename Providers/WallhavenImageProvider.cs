@@ -1,26 +1,30 @@
 using System.Net.Http;
 using System.Text.Json;
+using BackgroundSwitch.Models;
 using BackgroundSwitch.Services;
 
 namespace BackgroundSwitch.Providers;
 
 public class WallhavenImageProvider : BaseHttpImageProvider
 {
-    private readonly string _query;
+    private readonly string _rawQuery;
     private readonly string _apiKey;
+    private readonly TopicSelectionMode _topicMode;
     private readonly Random _random = new();
 
-    public WallhavenImageProvider(string? query, string? apiKey = "")
+    public WallhavenImageProvider(string? query, string? apiKey = "", TopicSelectionMode topicMode = TopicSelectionMode.Random)
     {
-        _query = string.IsNullOrWhiteSpace(query) ? "nature" : query.Trim();
+        _rawQuery = string.IsNullOrWhiteSpace(query) ? "nature" : query.Trim();
         _apiKey = apiKey?.Trim() ?? string.Empty;
+        _topicMode = topicMode;
     }
 
     public override async Task<string?> GetNextImagePathAsync(CancellationToken cancellationToken = default)
     {
         try
         {
-            var url = $"https://wallhaven.cc/api/v1/search?q={Uri.EscapeDataString(_query)}&sorting=random&resolutions=1920x1080,2560x1440,3840x2160&purity=100";
+            var currentTopic = TopicResolver.ResolveTopic(_rawQuery, _topicMode, "Wallhaven", "nature");
+            var url = $"https://wallhaven.cc/api/v1/search?q={Uri.EscapeDataString(currentTopic)}&sorting=random&resolutions=1920x1080,2560x1440,3840x2160&purity=100";
             if (!string.IsNullOrEmpty(_apiKey))
             {
                 url += $"&apikey={Uri.EscapeDataString(_apiKey)}";
@@ -63,7 +67,7 @@ public class WallhavenImageProvider : BaseHttpImageProvider
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[WallhavenImageProvider] Error fetching from Wallhaven ({_query}): {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[WallhavenImageProvider] Error fetching from Wallhaven ({_rawQuery}): {ex.Message}");
         }
 
         return null;

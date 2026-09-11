@@ -492,11 +492,31 @@
                                     </Border>
                                 </StackPanel>
 
-                                <TextBlock Text="{Binding PexelsQueryLabelText}" FontSize="12.5" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                                <!-- Topic Selection Mode Bar -->
+                                <Border Background="{StaticResource BrushBgInput}" CornerRadius="8" Padding="12,8" Margin="0,0,0,12" BorderBrush="{StaticResource BrushBorderSubtle}" BorderThickness="1">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding TopicModeLabelText}" FontWeight="SemiBold" FontSize="12" Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <RadioButton Content="{Binding TopicModeRandomText}" IsChecked="{Binding IsTopicModeRandom, Mode=TwoWay}" FontSize="12" FontWeight="SemiBold" Margin="0,0,16,0" Cursor="Hand"/>
+                                            <RadioButton Content="{Binding TopicModeSequentialText}" IsChecked="{Binding IsTopicModeSequential, Mode=TwoWay}" FontSize="12" FontWeight="SemiBold" Cursor="Hand"/>
+                                        </StackPanel>
+                                        <Button Grid.Column="2" Content="{Binding ClearTopicsBtnText}" Command="{Binding ClearCurrentTopicsCommand}" Style="{StaticResource SecondaryButton}" Padding="8,3" FontSize="11"/>
+                                    </Grid>
+                                </Border>
+
+                                <Grid Margin="0,0,0,6">
+                                    <TextBlock Text="{Binding PexelsQueryLabelText}" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding TopicHelpText}" FontSize="11" Foreground="{StaticResource BrushTextMuted}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
                                 <TextBox Text="{Binding PexelsQuery, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
 
                                 <!-- Quick Suggestion Chips for Pexels -->
-                                <TextBlock Text="GỢI Ý TỪ KHÓA NHANH (Bấm để áp dụng):" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushTextMuted}" Margin="0,0,0,6"/>
+                                <TextBlock Text="GỢI Ý CHỦ ĐỀ NHANH (Bấm để thêm/bớt vào danh sách):" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushTextMuted}" Margin="0,0,0,6"/>
                                 <WrapPanel Margin="0,0,0,12">
                                     <Button Content="🌿 Thiên nhiên (nature)" Style="{StaticResource ChipButton}" Command="{Binding SelectPexelsTagCommand}" CommandParameter="nature"/>
                                     <Button Content="🏙️ Đô thị (city)" Style="{StaticResource ChipButton}" Command="{Binding SelectPexelsTagCommand}" CommandParameter="city"/>
@@ -519,16 +539,40 @@
                             <!-- WALLHAVEN CONFIG PANEL -->
                             <StackPanel Visibility="{Binding IsWallhavenPanelVisible, Converter={StaticResource BoolToVis}}">
                                 <TextBlock Text="⚙️ CẤU HÌNH WALLHAVEN 4K/8K" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushPrimaryAccent}" Margin="0,0,0,12"/>
-                                <TextBlock Text="{Binding WallhavenQueryLabelText}" FontSize="12.5" FontWeight="SemiBold" Margin="0,0,0,6"/>
+
+                                <!-- Topic Selection Mode Bar -->
+                                <Border Background="{StaticResource BrushBgInput}" CornerRadius="8" Padding="12,8" Margin="0,0,0,12" BorderBrush="{StaticResource BrushBorderSubtle}" BorderThickness="1">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding TopicModeLabelText}" FontWeight="SemiBold" FontSize="12" Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <RadioButton Content="{Binding TopicModeRandomText}" IsChecked="{Binding IsTopicModeRandom, Mode=TwoWay}" FontSize="12" FontWeight="SemiBold" Margin="0,0,16,0" Cursor="Hand"/>
+                                            <RadioButton Content="{Binding TopicModeSequentialText}" IsChecked="{Binding IsTopicModeSequential, Mode=TwoWay}" FontSize="12" FontWeight="SemiBold" Cursor="Hand"/>
+                                        </StackPanel>
+                                        <Button Grid.Column="2" Content="{Binding ClearTopicsBtnText}" Command="{Binding ClearCurrentTopicsCommand}" Style="{StaticResource SecondaryButton}" Padding="8,3" FontSize="11"/>
+                                    </Grid>
+                                </Border>
+
+                                <Grid Margin="0,0,0,6">
+                                    <TextBlock Text="{Binding WallhavenQueryLabelText}" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding TopicHelpText}" FontSize="11" Foreground="{StaticResource BrushTextMuted}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
                                 <TextBox Text="{Binding WallhavenQuery, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
 
                                 <!-- Quick Chips for Wallhaven -->
+                                <TextBlock Text="GỢI Ý CHỦ ĐỀ NHANH (Bấm để thêm/bớt):" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushTextMuted}" Margin="0,0,0,6"/>
                                 <WrapPanel Margin="0,0,0,12">
                                     <Button Content="nature" Style="{StaticResource ChipButton}" Command="{Binding SelectWallhavenTagCommand}" CommandParameter="nature"/>
                                     <Button Content="anime" Style="{StaticResource ChipButton}" Command="{Binding SelectWallhavenTagCommand}" CommandParameter="anime"/>
                                     <Button Content="cyberpunk" Style="{StaticResource ChipButton}" Command="{Binding SelectWallhavenTagCommand}" CommandParameter="cyberpunk"/>
                                     <Button Content="landscape" Style="{StaticResource ChipButton}" Command="{Binding SelectWallhavenTagCommand}" CommandParameter="landscape"/>
                                     <Button Content="fantasy" Style="{StaticResource ChipButton}" Command="{Binding SelectWallhavenTagCommand}" CommandParameter="fantasy"/>
+                                    <Button Content="space" Style="{StaticResource ChipButton}" Command="{Binding SelectWallhavenTagCommand}" CommandParameter="space"/>
+                                    <Button Content="cars" Style="{StaticResource ChipButton}" Command="{Binding SelectWallhavenTagCommand}" CommandParameter="cars"/>
                                 </WrapPanel>
 
                                 <TextBlock Text="{Binding WallhavenApiKeyLabelText}" FontSize="12.5" FontWeight="SemiBold" Margin="0,0,0,6"/>
@@ -538,11 +582,33 @@
                             <!-- REDDIT CONFIG PANEL -->
                             <StackPanel Visibility="{Binding IsRedditPanelVisible, Converter={StaticResource BoolToVis}}">
                                 <TextBlock Text="⚙️ CẤU HÌNH REDDIT WALLPAPERS" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushPrimaryAccent}" Margin="0,0,0,12"/>
-                                <TextBlock Text="{Binding RedditSubLabelText}" FontSize="12.5" FontWeight="SemiBold" Margin="0,0,0,6"/>
+
+                                <!-- Topic Selection Mode Bar -->
+                                <Border Background="{StaticResource BrushBgInput}" CornerRadius="8" Padding="12,8" Margin="0,0,0,12" BorderBrush="{StaticResource BrushBorderSubtle}" BorderThickness="1">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding TopicModeLabelText}" FontWeight="SemiBold" FontSize="12" Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <RadioButton Content="{Binding TopicModeRandomText}" IsChecked="{Binding IsTopicModeRandom, Mode=TwoWay}" FontSize="12" FontWeight="SemiBold" Margin="0,0,16,0" Cursor="Hand"/>
+                                            <RadioButton Content="{Binding TopicModeSequentialText}" IsChecked="{Binding IsTopicModeSequential, Mode=TwoWay}" FontSize="12" FontWeight="SemiBold" Cursor="Hand"/>
+                                        </StackPanel>
+                                        <Button Grid.Column="2" Content="{Binding ClearTopicsBtnText}" Command="{Binding ClearCurrentTopicsCommand}" Style="{StaticResource SecondaryButton}" Padding="8,3" FontSize="11"/>
+                                    </Grid>
+                                </Border>
+
+                                <Grid Margin="0,0,0,6">
+                                    <TextBlock Text="{Binding RedditSubLabelText}" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding TopicHelpText}" FontSize="11" Foreground="{StaticResource BrushTextMuted}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
                                 <TextBox Text="{Binding RedditSubreddit, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
 
                                 <!-- Quick Chips for Reddit -->
-                                <WrapPanel>
+                                <TextBlock Text="GỢI Ý SUBREDDIT NHANH (Bấm để thêm/bớt):" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushTextMuted}" Margin="0,0,0,6"/>
+                                <WrapPanel Margin="0,0,0,12">
                                     <Button Content="r/wallpapers" Style="{StaticResource ChipButton}" Command="{Binding SelectRedditTagCommand}" CommandParameter="wallpapers"/>
                                     <Button Content="r/EarthPorn" Style="{StaticResource ChipButton}" Command="{Binding SelectRedditTagCommand}" CommandParameter="EarthPorn"/>
                                     <Button Content="r/spaceporn" Style="{StaticResource ChipButton}" Command="{Binding SelectRedditTagCommand}" CommandParameter="spaceporn"/>
@@ -568,7 +634,28 @@
                             <!-- UNSPLASH CONFIG PANEL -->
                             <StackPanel Visibility="{Binding IsUnsplashPanelVisible, Converter={StaticResource BoolToVis}}">
                                 <TextBlock Text="⚙️ CẤU HÌNH UNSPLASH PHOTOS" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushPrimaryAccent}" Margin="0,0,0,12"/>
-                                <TextBlock Text="{Binding UnsplashQueryLabelText}" FontSize="12.5" FontWeight="SemiBold" Margin="0,0,0,6"/>
+
+                                <!-- Topic Selection Mode Bar -->
+                                <Border Background="{StaticResource BrushBgInput}" CornerRadius="8" Padding="12,8" Margin="0,0,0,12" BorderBrush="{StaticResource BrushBorderSubtle}" BorderThickness="1">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding TopicModeLabelText}" FontWeight="SemiBold" FontSize="12" Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <RadioButton Content="{Binding TopicModeRandomText}" IsChecked="{Binding IsTopicModeRandom, Mode=TwoWay}" FontSize="12" FontWeight="SemiBold" Margin="0,0,16,0" Cursor="Hand"/>
+                                            <RadioButton Content="{Binding TopicModeSequentialText}" IsChecked="{Binding IsTopicModeSequential, Mode=TwoWay}" FontSize="12" FontWeight="SemiBold" Cursor="Hand"/>
+                                        </StackPanel>
+                                        <Button Grid.Column="2" Content="{Binding ClearTopicsBtnText}" Command="{Binding ClearCurrentTopicsCommand}" Style="{StaticResource SecondaryButton}" Padding="8,3" FontSize="11"/>
+                                    </Grid>
+                                </Border>
+
+                                <Grid Margin="0,0,0,6">
+                                    <TextBlock Text="{Binding UnsplashQueryLabelText}" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding TopicHelpText}" FontSize="11" Foreground="{StaticResource BrushTextMuted}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
                                 <TextBox Text="{Binding UnsplashQuery, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
                                 <TextBlock Text="{Binding UnsplashApiKeyLabelText}" FontSize="12.5" FontWeight="SemiBold" Margin="0,0,0,6"/>
                                 <TextBox Text="{Binding UnsplashApiKey, UpdateSourceTrigger=PropertyChanged}"/>

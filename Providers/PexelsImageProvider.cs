@@ -10,25 +10,29 @@ public class PexelsImageProvider : BaseHttpImageProvider
     public const string DefaultApiKey = ProviderConfig.DefaultPexelsApiKey;
 
     private readonly string _apiKey;
-    private readonly string _query;
+    private readonly string _rawQuery;
+    private readonly TopicSelectionMode _topicMode;
     private readonly Random _random = new();
 
-    public PexelsImageProvider(string? apiKey, string? query)
+    public PexelsImageProvider(string? apiKey, string? query, TopicSelectionMode topicMode = TopicSelectionMode.Random)
     {
         _apiKey = string.IsNullOrWhiteSpace(apiKey) ? DefaultApiKey : apiKey.Trim();
-        _query = string.IsNullOrWhiteSpace(query) ? "nature" : query.Trim();
+        _rawQuery = string.IsNullOrWhiteSpace(query) ? "nature" : query.Trim();
+        _topicMode = topicMode;
     }
 
     public override async Task<string?> GetNextImagePathAsync(CancellationToken cancellationToken = default)
     {
         try
         {
+            string currentTopic = TopicResolver.ResolveTopic(_rawQuery, _topicMode, "Pexels", "nature");
+
             for (int attempt = 0; attempt < 3; attempt++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 int randomPage = _random.Next(1, 10);
-                string url = $"https://api.pexels.com/v1/search?query={Uri.EscapeDataString(_query)}&per_page=15&page={randomPage}";
+                string url = $"https://api.pexels.com/v1/search?query={Uri.EscapeDataString(currentTopic)}&per_page=15&page={randomPage}";
 
                 using var request = new HttpRequestMessage(HttpMethod.Get, url);
                 request.Headers.Add("Authorization", _apiKey);
@@ -73,7 +77,7 @@ public class PexelsImageProvider : BaseHttpImageProvider
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[PexelsImageProvider] Error fetching image: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[PexelsImageProvider] Error fetching image ({_rawQuery}): {ex.Message}");
         }
 
         return null;

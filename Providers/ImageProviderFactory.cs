@@ -14,12 +14,12 @@ public class ImageProviderFactory : IImageProviderFactory
         var type = config.Type?.ToLowerInvariant() ?? string.Empty;
         return type switch
         {
-            "reddit" => new RedditImageProvider(config.RedditSubreddit),
-            "wallhaven" => new WallhavenImageProvider(config.WallhavenQuery, config.WallhavenApiKey),
+            "reddit" => new RedditImageProvider(config.RedditSubreddit, config.TopicMode),
+            "wallhaven" => new WallhavenImageProvider(config.WallhavenQuery, config.WallhavenApiKey, config.TopicMode),
             "nasa" or "apod" => new NasaApodImageProvider(config.NasaApiKey),
-            "unsplash" => new UnsplashImageProvider(config.UnsplashApiKey, config.UnsplashQuery),
+            "unsplash" => new UnsplashImageProvider(config.UnsplashApiKey, config.UnsplashQuery, config.TopicMode),
             "bingdaily" or "bing" => new BingDailyImageProvider(),
-            "pexels" => new PexelsImageProvider(config.PexelsApiKey, config.PexelsQuery),
+            "pexels" => new PexelsImageProvider(config.PexelsApiKey, config.PexelsQuery, config.TopicMode),
             _ => new LocalFolderImageProvider(config.LocalFolderPath)
         };
     }
