@@ -231,7 +231,7 @@
                                 <TextBlock Text="v2.0 MVVM" FontSize="10.5" FontWeight="Bold" Foreground="{StaticResource BrushPrimaryAccent}"/>
                             </Border>
                             <Border Background="#1C382A" CornerRadius="12" Padding="8,2" Margin="8,0,0,0" VerticalAlignment="Center">
-                                <TextBlock Text="● Pexels API Mặc Định" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource BrushSuccessAccent}"/>
+                                <TextBlock Text="{Binding PexelsDefaultBadgeText}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource BrushSuccessAccent}"/>
                             </Border>
                         </StackPanel>
                         <TextBlock Text="{Binding AppSubtitleText}" FontSize="12" Foreground="{StaticResource BrushTextSecondary}" Margin="0,2,0,0"/>
@@ -281,7 +281,7 @@
                 <Border Grid.Column="0" Height="80" Width="130" CornerRadius="8" Background="#11131F" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1" ClipToBounds="True">
                     <Grid>
                         <Image Source="{Binding CurrentWallpaperPath, Converter={StaticResource ImagePathToBitmap}}" Stretch="UniformToFill"/>
-                        <TextBlock Text="📷 Xem trước" FontSize="11" Foreground="{StaticResource BrushTextMuted}" 
+                        <TextBlock Text="{Binding PreviewPlaceholderText}" FontSize="11" Foreground="{StaticResource BrushTextMuted}" 
                                    HorizontalAlignment="Center" VerticalAlignment="Center"
                                    Visibility="{Binding HasCurrentWallpaper, Converter={StaticResource InverseBoolToVis}}"/>
                     </Grid>
@@ -305,9 +305,9 @@
                 <!-- Live Preview Quick Action Pills -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                     <Button Content="{Binding FavoriteBtnText}" Command="{Binding AddToFavoritesCommand}" Style="{StaticResource AccentButton}" Padding="14,7" Margin="0,0,8,0"/>
-                    <Button Content="💾 Lưu ảnh" Command="{Binding SaveCurrentPictureAsCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0"/>
-                    <Button Content="🔍 Xem file" Command="{Binding OpenCurrentInExplorerCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0"/>
-                    <Button Content="🚫 Chặn ảnh" Command="{Binding BlacklistCurrentWallpaperCommand}" Style="{StaticResource DangerButton}"/>
+                    <Button Content="{Binding SavePictureBtnText}" Command="{Binding SaveCurrentPictureAsCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0"/>
+                    <Button Content="{Binding ViewFileBtnText}" Command="{Binding OpenCurrentInExplorerCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0"/>
+                    <Button Content="{Binding BlacklistBtnText}" Command="{Binding BlacklistCurrentWallpaperCommand}" Style="{StaticResource DangerButton}"/>
                 </StackPanel>
             </Grid>
         </Border>
@@ -315,9 +315,9 @@
         <!-- 4. Navigation Segment Tabs -->
         <Border Grid.Row="3" Background="{StaticResource BrushBgDark}" Padding="20,12,20,6">
             <StackPanel Orientation="Horizontal">
-                <RadioButton Content="🌐 Nguồn Hình Nền" Style="{StaticResource NavTabStyle}" IsChecked="{Binding IsTabSources, Mode=OneWay}" Command="{Binding SelectTabCommand}" CommandParameter="0"/>
-                <RadioButton Content="🖥️ Màn Hình &amp; Bố Cục" Style="{StaticResource NavTabStyle}" IsChecked="{Binding IsTabDisplays, Mode=OneWay}" Command="{Binding SelectTabCommand}" CommandParameter="1"/>
-                <RadioButton Content="⚙️ Lịch Trình &amp; Cài Đặt" Style="{StaticResource NavTabStyle}" IsChecked="{Binding IsTabSettings, Mode=OneWay}" Command="{Binding SelectTabCommand}" CommandParameter="2"/>
+                <RadioButton Content="{Binding NavSourcesText}" Style="{StaticResource NavTabStyle}" IsChecked="{Binding IsTabSources, Mode=OneWay}" Command="{Binding SelectTabCommand}" CommandParameter="0"/>
+                <RadioButton Content="{Binding NavDisplaysText}" Style="{StaticResource NavTabStyle}" IsChecked="{Binding IsTabDisplays, Mode=OneWay}" Command="{Binding SelectTabCommand}" CommandParameter="1"/>
+                <RadioButton Content="{Binding NavSettingsText}" Style="{StaticResource NavTabStyle}" IsChecked="{Binding IsTabSettings, Mode=OneWay}" Command="{Binding SelectTabCommand}" CommandParameter="2"/>
             </StackPanel>
         </Border>
 
@@ -326,7 +326,7 @@
             <Grid>
                 <!-- ==================== TAB 0: WALLPAPER SOURCES ==================== -->
                 <StackPanel Visibility="{Binding IsTabSources, Converter={StaticResource BoolToVis}}">
-                    <TextBlock Text="CHỌN NGUỒN CUNG CẤP HÌNH NỀN" FontSize="12" FontWeight="Bold" Foreground="{StaticResource BrushTextMuted}" Margin="0,0,0,12"/>
+                    <TextBlock Text="{Binding SelectSourceTitleText}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource BrushTextMuted}" Margin="0,0,0,12"/>
 
                     <!-- Visual Grid of Source Cards -->
                     <WrapPanel Margin="0,0,0,16">
@@ -334,12 +334,12 @@
                         <RadioButton Style="{StaticResource SourceCardStyle}" IsChecked="{Binding IsSourcePexels, Mode=TwoWay}">
                             <StackPanel>
                                 <Grid Margin="0,0,0,4">
-                                    <TextBlock Text="📷 Pexels API" FontWeight="Bold" FontSize="14" Foreground="{StaticResource BrushPrimaryAccent}"/>
+                                    <TextBlock Text="{Binding CardTitlePexelsText}" FontWeight="Bold" FontSize="14" Foreground="{StaticResource BrushPrimaryAccent}"/>
                                     <Border Background="#1C382A" CornerRadius="4" Padding="6,2" HorizontalAlignment="Right">
-                                        <TextBlock Text="Ultra HD 4K" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushSuccessAccent}"/>
+                                        <TextBlock Text="{Binding BadgeUltraHdText}" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushSuccessAccent}"/>
                                     </Border>
                                 </Grid>
-                                <TextBlock Text="Kho ảnh nhiếp ảnh gia toàn cầu theo từ khóa (Đã sẵn key)." FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding CardPexelsDescText}" FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap"/>
                             </StackPanel>
                         </RadioButton>
 
@@ -347,12 +347,12 @@
                         <RadioButton Style="{StaticResource SourceCardStyle}" IsChecked="{Binding IsSourceBing, Mode=TwoWay}">
                             <StackPanel>
                                 <Grid Margin="0,0,0,4">
-                                    <TextBlock Text="🌅 Bing Daily 4K" FontWeight="Bold" FontSize="14"/>
+                                    <TextBlock Text="{Binding CardTitleBingText}" FontWeight="Bold" FontSize="14"/>
                                     <Border Background="#252A42" CornerRadius="4" Padding="6,2" HorizontalAlignment="Right">
-                                        <TextBlock Text="Mỗi ngày 1 ảnh" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushPrimaryAccent}"/>
+                                        <TextBlock Text="{Binding BadgeDailyText}" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushPrimaryAccent}"/>
                                     </Border>
                                 </Grid>
-                                <TextBlock Text="Hình nền Ultra HD chính thức mỗi ngày của Microsoft Bing." FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding CardBingDescText}" FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap"/>
                             </StackPanel>
                         </RadioButton>
 
@@ -360,12 +360,12 @@
                         <RadioButton Style="{StaticResource SourceCardStyle}" IsChecked="{Binding IsSourceWallhaven, Mode=TwoWay}">
                             <StackPanel>
                                 <Grid Margin="0,0,0,4">
-                                    <TextBlock Text="🎨 Wallhaven" FontWeight="Bold" FontSize="14"/>
+                                    <TextBlock Text="{Binding CardTitleWallhavenText}" FontWeight="Bold" FontSize="14"/>
                                     <Border Background="#252A42" CornerRadius="4" Padding="6,2" HorizontalAlignment="Right">
-                                        <TextBlock Text="4K / 8K Art" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushSecondaryAccent}"/>
+                                        <TextBlock Text="{Binding BadgeArtText}" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushSecondaryAccent}"/>
                                     </Border>
                                 </Grid>
-                                <TextBlock Text="Kho hình nền nghệ thuật, anime và cyberpunk chất lượng đỉnh cao." FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding CardWallhavenDescText}" FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap"/>
                             </StackPanel>
                         </RadioButton>
 
@@ -373,12 +373,12 @@
                         <RadioButton Style="{StaticResource SourceCardStyle}" IsChecked="{Binding IsSourceNasa, Mode=TwoWay}">
                             <StackPanel>
                                 <Grid Margin="0,0,0,4">
-                                    <TextBlock Text="🚀 NASA APOD" FontWeight="Bold" FontSize="14"/>
+                                    <TextBlock Text="{Binding CardTitleNasaText}" FontWeight="Bold" FontSize="14"/>
                                     <Border Background="#252A42" CornerRadius="4" Padding="6,2" HorizontalAlignment="Right">
-                                        <TextBlock Text="Vũ Trụ" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushWarningAccent}"/>
+                                        <TextBlock Text="{Binding BadgeSpaceText}" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushWarningAccent}"/>
                                     </Border>
                                 </Grid>
-                                <TextBlock Text="Ảnh thiên văn kỳ vĩ từ kính viễn vọng không gian James Webb &amp; Hubble." FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding CardNasaDescText}" FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap"/>
                             </StackPanel>
                         </RadioButton>
 
@@ -386,12 +386,12 @@
                         <RadioButton Style="{StaticResource SourceCardStyle}" IsChecked="{Binding IsSourceUnsplash, Mode=TwoWay}">
                             <StackPanel>
                                 <Grid Margin="0,0,0,4">
-                                    <TextBlock Text="🌄 Unsplash Photos" FontWeight="Bold" FontSize="14"/>
+                                    <TextBlock Text="{Binding CardTitleUnsplashText}" FontWeight="Bold" FontSize="14"/>
                                     <Border Background="#252A42" CornerRadius="4" Padding="6,2" HorizontalAlignment="Right">
-                                        <TextBlock Text="Nghệ Thuật" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushPrimaryAccent}"/>
+                                        <TextBlock Text="{Binding BadgeArtText}" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushPrimaryAccent}"/>
                                     </Border>
                                 </Grid>
-                                <TextBlock Text="Nhiếp ảnh phong cảnh &amp; tự nhiên từ các nhiếp ảnh gia hàng đầu thế giới." FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding CardUnsplashDescText}" FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap"/>
                             </StackPanel>
                         </RadioButton>
 
@@ -399,12 +399,12 @@
                         <RadioButton Style="{StaticResource SourceCardStyle}" IsChecked="{Binding IsSourceReddit, Mode=TwoWay}">
                             <StackPanel>
                                 <Grid Margin="0,0,0,4">
-                                    <TextBlock Text="🤖 Reddit Wallpapers" FontWeight="Bold" FontSize="14"/>
+                                    <TextBlock Text="{Binding CardTitleRedditText}" FontWeight="Bold" FontSize="14"/>
                                     <Border Background="#252A42" CornerRadius="4" Padding="6,2" HorizontalAlignment="Right">
-                                        <TextBlock Text="Cộng Đồng" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}"/>
+                                        <TextBlock Text="{Binding BadgeCommunityText}" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}"/>
                                     </Border>
                                 </Grid>
-                                <TextBlock Text="Tự động lấy ảnh độ phân giải cao từ các cộng đồng r/wallpapers, EarthPorn." FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding CardRedditDescText}" FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap"/>
                             </StackPanel>
                         </RadioButton>
 
@@ -412,12 +412,12 @@
                         <RadioButton Style="{StaticResource SourceCardStyle}" IsChecked="{Binding IsSourceLocal, Mode=TwoWay}">
                             <StackPanel>
                                 <Grid Margin="0,0,0,4">
-                                    <TextBlock Text="📁 Thư Mục Local" FontWeight="Bold" FontSize="14"/>
+                                    <TextBlock Text="{Binding CardTitleLocalText}" FontWeight="Bold" FontSize="14"/>
                                     <Border Background="#252A42" CornerRadius="4" Padding="6,2" HorizontalAlignment="Right">
-                                        <TextBlock Text="Offline" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextMuted}"/>
+                                        <TextBlock Text="{Binding BadgeOfflineText}" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextMuted}"/>
                                     </Border>
                                 </Grid>
-                                <TextBlock Text="Quét và đổi ngẫu nhiên ảnh trong thư mục ảnh trên máy tính của bạn." FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding CardLocalDescText}" FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap"/>
                             </StackPanel>
                         </RadioButton>
                     </WrapPanel>
@@ -428,9 +428,9 @@
                             <!-- PEXELS CONFIG PANEL -->
                             <StackPanel Visibility="{Binding IsPexelsPanelVisible, Converter={StaticResource BoolToVis}}">
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                                    <TextBlock Text="⚙️ CẤU HÌNH PEXELS API" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushPrimaryAccent}"/>
+                                    <TextBlock Text="{Binding ConfigPexelsTitleText}" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushPrimaryAccent}"/>
                                     <Border Background="#1C382A" CornerRadius="4" Padding="6,2" Margin="8,0,0,0">
-                                        <TextBlock Text="🟢 Key hợp lệ" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushSuccessAccent}"/>
+                                        <TextBlock Text="{Binding KeyValidText}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushSuccessAccent}"/>
                                     </Border>
                                 </StackPanel>
 
@@ -458,7 +458,7 @@
                                 <TextBox Text="{Binding PexelsQuery, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
 
                                 <!-- Quick Suggestion Chips for Pexels -->
-                                <TextBlock Text="GỢI Ý CHỦ ĐỀ NHANH (Bấm để thêm/bớt vào danh sách):" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushTextMuted}" Margin="0,0,0,6"/>
+                                <TextBlock Text="{Binding QuickTopicHintText}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushTextMuted}" Margin="0,0,0,6"/>
                                 <WrapPanel Margin="0,0,0,12">
                                     <Button Content="🌿 Thiên nhiên (nature)" Style="{StaticResource ChipButton}" Command="{Binding SelectPexelsTagCommand}" CommandParameter="nature"/>
                                     <Button Content="🏙️ Đô thị (city)" Style="{StaticResource ChipButton}" Command="{Binding SelectPexelsTagCommand}" CommandParameter="city"/>
@@ -474,13 +474,13 @@
 
                                 <TextBlock Text="{Binding PexelsApiKeyLabelText}" FontSize="12.5" FontWeight="SemiBold" Margin="0,0,0,6"/>
                                 <TextBox Text="{Binding PexelsApiKey, UpdateSourceTrigger=PropertyChanged}"/>
-                                <TextBlock Text="💡 API Key này đã được lưu sẵn trong ứng dụng. Bạn có thể để trống hoặc thay đổi bất kỳ lúc nào." 
+                                <TextBlock Text="{Binding PexelsKeyHelpText}" 
                                            FontSize="11.5" Foreground="{StaticResource BrushTextMuted}" Margin="0,4,0,0"/>
                             </StackPanel>
 
                             <!-- WALLHAVEN CONFIG PANEL -->
                             <StackPanel Visibility="{Binding IsWallhavenPanelVisible, Converter={StaticResource BoolToVis}}">
-                                <TextBlock Text="⚙️ CẤU HÌNH WALLHAVEN 4K/8K" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushPrimaryAccent}" Margin="0,0,0,12"/>
+                                <TextBlock Text="{Binding ConfigWallhavenTitleText}" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushPrimaryAccent}" Margin="0,0,0,12"/>
 
                                 <!-- Topic Selection Mode Bar -->
                                 <Border Background="{StaticResource BrushBgInput}" CornerRadius="8" Padding="12,8" Margin="0,0,0,12" BorderBrush="{StaticResource BrushBorderSubtle}" BorderThickness="1">
@@ -506,7 +506,7 @@
                                 <TextBox Text="{Binding WallhavenQuery, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
 
                                 <!-- Quick Chips for Wallhaven -->
-                                <TextBlock Text="GỢI Ý CHỦ ĐỀ NHANH (Bấm để thêm/bớt):" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushTextMuted}" Margin="0,0,0,6"/>
+                                <TextBlock Text="{Binding QuickTopicHintText}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushTextMuted}" Margin="0,0,0,6"/>
                                 <WrapPanel Margin="0,0,0,12">
                                     <Button Content="nature" Style="{StaticResource ChipButton}" Command="{Binding SelectWallhavenTagCommand}" CommandParameter="nature"/>
                                     <Button Content="anime" Style="{StaticResource ChipButton}" Command="{Binding SelectWallhavenTagCommand}" CommandParameter="anime"/>
@@ -523,7 +523,7 @@
 
                             <!-- REDDIT CONFIG PANEL -->
                             <StackPanel Visibility="{Binding IsRedditPanelVisible, Converter={StaticResource BoolToVis}}">
-                                <TextBlock Text="⚙️ CẤU HÌNH REDDIT WALLPAPERS" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushPrimaryAccent}" Margin="0,0,0,12"/>
+                                <TextBlock Text="{Binding ConfigRedditTitleText}" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushPrimaryAccent}" Margin="0,0,0,12"/>
 
                                 <!-- Topic Selection Mode Bar -->
                                 <Border Background="{StaticResource BrushBgInput}" CornerRadius="8" Padding="12,8" Margin="0,0,0,12" BorderBrush="{StaticResource BrushBorderSubtle}" BorderThickness="1">
@@ -549,7 +549,7 @@
                                 <TextBox Text="{Binding RedditSubreddit, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
 
                                 <!-- Quick Chips for Reddit -->
-                                <TextBlock Text="GỢI Ý SUBREDDIT NHANH (Bấm để thêm/bớt):" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushTextMuted}" Margin="0,0,0,6"/>
+                                <TextBlock Text="{Binding QuickTopicHintText}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushTextMuted}" Margin="0,0,0,6"/>
                                 <WrapPanel Margin="0,0,0,12">
                                     <Button Content="r/wallpapers" Style="{StaticResource ChipButton}" Command="{Binding SelectRedditTagCommand}" CommandParameter="wallpapers"/>
                                     <Button Content="r/EarthPorn" Style="{StaticResource ChipButton}" Command="{Binding SelectRedditTagCommand}" CommandParameter="EarthPorn"/>
@@ -561,7 +561,7 @@
 
                             <!-- LOCAL FOLDER CONFIG PANEL -->
                             <StackPanel Visibility="{Binding IsLocalPanelVisible, Converter={StaticResource BoolToVis}}">
-                                <TextBlock Text="⚙️ CẤU HÌNH THƯ MỤC ẢNH CỤC BỘ" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushPrimaryAccent}" Margin="0,0,0,12"/>
+                                <TextBlock Text="{Binding ConfigLocalTitleText}" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushPrimaryAccent}" Margin="0,0,0,12"/>
                                 <TextBlock Text="{Binding LocalFolderPathLabelText}" FontSize="12.5" FontWeight="SemiBold" Margin="0,0,0,6"/>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
@@ -575,7 +575,7 @@
 
                             <!-- UNSPLASH CONFIG PANEL -->
                             <StackPanel Visibility="{Binding IsUnsplashPanelVisible, Converter={StaticResource BoolToVis}}">
-                                <TextBlock Text="⚙️ CẤU HÌNH UNSPLASH PHOTOS" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushPrimaryAccent}" Margin="0,0,0,12"/>
+                                <TextBlock Text="{Binding ConfigUnsplashTitleText}" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushPrimaryAccent}" Margin="0,0,0,12"/>
 
                                 <!-- Topic Selection Mode Bar -->
                                 <Border Background="{StaticResource BrushBgInput}" CornerRadius="8" Padding="12,8" Margin="0,0,0,12" BorderBrush="{StaticResource BrushBorderSubtle}" BorderThickness="1">
@@ -605,10 +605,10 @@
 
                             <!-- BING DAILY & NASA APOD (No config required info) -->
                             <StackPanel Visibility="{Binding IsSourceBing, Converter={StaticResource BoolToVis}}">
-                                <TextBlock Text="✨ Nguồn Bing Daily tự động đồng bộ ảnh 4K mỗi ngày từ Microsoft. Không cần cấu hình thêm." FontSize="13" Foreground="{StaticResource BrushSuccessAccent}"/>
+                                <TextBlock Text="{Binding BingNoConfigHintText}" FontSize="13" Foreground="{StaticResource BrushSuccessAccent}"/>
                             </StackPanel>
                             <StackPanel Visibility="{Binding IsSourceNasa, Converter={StaticResource BoolToVis}}">
-                                <TextBlock Text="✨ Nguồn NASA APOD tự động lấy ảnh thiên văn hàng ngày từ kính James Webb &amp; Hubble qua NASA Open API." FontSize="13" Foreground="{StaticResource BrushSuccessAccent}"/>
+                                <TextBlock Text="{Binding NasaNoConfigHintText}" FontSize="13" Foreground="{StaticResource BrushSuccessAccent}"/>
                             </StackPanel>
                         </StackPanel>
                     </Border>
@@ -639,12 +639,12 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Text="{Binding ScaleLabelText}" VerticalAlignment="Center" FontWeight="SemiBold" FontSize="13"/>
                                 <ComboBox Grid.Column="1" SelectedValue="{Binding Scale, Mode=TwoWay}" SelectedValuePath="Tag">
-                                    <ComboBoxItem Content="Fill — Cắt vừa khung màn hình (Khuyên dùng)" Tag="{x:Static models:WallpaperScale.Fill}"/>
-                                    <ComboBoxItem Content="Fit — Giữ nguyên tỉ lệ ảnh (Viền nền)" Tag="{x:Static models:WallpaperScale.Fit}"/>
-                                    <ComboBoxItem Content="Stretch — Kéo dãn full khung" Tag="{x:Static models:WallpaperScale.Stretch}"/>
-                                    <ComboBoxItem Content="Center — Đặt ở chính giữa" Tag="{x:Static models:WallpaperScale.Center}"/>
-                                    <ComboBoxItem Content="Tile — Lặp lại dạng ô cờ" Tag="{x:Static models:WallpaperScale.Tile}"/>
-                                    <ComboBoxItem Content="Span — Trải rộng qua các màn hình" Tag="{x:Static models:WallpaperScale.Span}"/>
+                                    <ComboBoxItem Content="{Binding ScaleFillText}" Tag="{x:Static models:WallpaperScale.Fill}"/>
+                                    <ComboBoxItem Content="{Binding ScaleFitText}" Tag="{x:Static models:WallpaperScale.Fit}"/>
+                                    <ComboBoxItem Content="{Binding ScaleStretchText}" Tag="{x:Static models:WallpaperScale.Stretch}"/>
+                                    <ComboBoxItem Content="{Binding ScaleCenterText}" Tag="{x:Static models:WallpaperScale.Center}"/>
+                                    <ComboBoxItem Content="{Binding ScaleTileText}" Tag="{x:Static models:WallpaperScale.Tile}"/>
+                                    <ComboBoxItem Content="{Binding ScaleSpanText}" Tag="{x:Static models:WallpaperScale.Span}"/>
                                 </ComboBox>
                             </Grid>
                         </StackPanel>
@@ -653,7 +653,7 @@
                     <!-- Connected Monitors List -->
                     <Border Background="{StaticResource BrushBgCard}" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1" CornerRadius="10" Padding="18">
                         <StackPanel>
-                            <TextBlock Text="🖥️ DANH SÁCH MÀN HÌNH ĐÃ PHÁT HIỆN" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushPrimaryAccent}" Margin="0,0,0,12"/>
+                            <TextBlock Text="{Binding DetectedMonitorsTitleText}" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushPrimaryAccent}" Margin="0,0,0,12"/>
                             <ItemsControl ItemsSource="{Binding Monitors}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
@@ -668,7 +668,7 @@
                                                     <TextBlock Text="{Binding DeviceName}" Foreground="{StaticResource BrushTextSecondary}" FontSize="11.5" Margin="0,2,0,0"/>
                                                 </StackPanel>
                                                 <Border Grid.Column="1" Background="#1C382A" CornerRadius="4" Padding="8,3" VerticalAlignment="Center">
-                                                    <TextBlock Text="Đang kết nối" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource BrushSuccessAccent}"/>
+                                                    <TextBlock Text="{Binding DataContext.ConnectedStatusText, RelativeSource={RelativeSource AncestorType=Window}}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource BrushSuccessAccent}"/>
                                                 </Border>
                                             </Grid>
                                         </Border>
@@ -684,7 +684,7 @@
                     <!-- Schedule Interval Card -->
                     <Border Background="{StaticResource BrushBgCard}" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1" CornerRadius="10" Padding="18" Margin="0,0,0,16">
                         <StackPanel>
-                            <TextBlock Text="⏱️ TẦN SUẤT ĐỔI HÌNH NỀN TỰ ĐỘNG" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushPrimaryAccent}" Margin="0,0,0,12"/>
+                            <TextBlock Text="{Binding IntervalSectionTitleText}" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushPrimaryAccent}" Margin="0,0,0,12"/>
                             
                             <Grid Margin="0,0,0,12">
                                 <Grid.ColumnDefinitions>
@@ -698,14 +698,14 @@
                             </Grid>
 
                             <!-- Quick Preset Pills for Interval -->
-                            <TextBlock Text="CHỌN NHANH TẦN SUẤT:" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushTextMuted}" Margin="0,0,0,6"/>
+                            <TextBlock Text="{Binding QuickIntervalTitleText}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushTextMuted}" Margin="0,0,0,6"/>
                             <WrapPanel Margin="0,0,0,12">
-                                <Button Content="15 phút" Style="{StaticResource ChipButton}" Command="{Binding SelectIntervalPresetCommand}" CommandParameter="15"/>
-                                <Button Content="30 phút" Style="{StaticResource ChipButton}" Command="{Binding SelectIntervalPresetCommand}" CommandParameter="30"/>
-                                <Button Content="1 giờ (60p)" Style="{StaticResource ChipButton}" Command="{Binding SelectIntervalPresetCommand}" CommandParameter="60"/>
-                                <Button Content="2 giờ (120p)" Style="{StaticResource ChipButton}" Command="{Binding SelectIntervalPresetCommand}" CommandParameter="120"/>
-                                <Button Content="4 giờ (240p)" Style="{StaticResource ChipButton}" Command="{Binding SelectIntervalPresetCommand}" CommandParameter="240"/>
-                                <Button Content="24 giờ (1 ngày)" Style="{StaticResource ChipButton}" Command="{Binding SelectIntervalPresetCommand}" CommandParameter="1440"/>
+                                <Button Content="{Binding Preset15MinText}" Style="{StaticResource ChipButton}" Command="{Binding SelectIntervalPresetCommand}" CommandParameter="15"/>
+                                <Button Content="{Binding Preset30MinText}" Style="{StaticResource ChipButton}" Command="{Binding SelectIntervalPresetCommand}" CommandParameter="30"/>
+                                <Button Content="{Binding Preset1HourText}" Style="{StaticResource ChipButton}" Command="{Binding SelectIntervalPresetCommand}" CommandParameter="60"/>
+                                <Button Content="{Binding Preset2HourText}" Style="{StaticResource ChipButton}" Command="{Binding SelectIntervalPresetCommand}" CommandParameter="120"/>
+                                <Button Content="{Binding Preset4HourText}" Style="{StaticResource ChipButton}" Command="{Binding SelectIntervalPresetCommand}" CommandParameter="240"/>
+                                <Button Content="{Binding Preset24HourText}" Style="{StaticResource ChipButton}" Command="{Binding SelectIntervalPresetCommand}" CommandParameter="1440"/>
                             </WrapPanel>
 
                             <CheckBox Content="{Binding AutoStartText}" IsChecked="{Binding AutoStart, Mode=TwoWay}" FontSize="13"/>
@@ -715,12 +715,12 @@
                     <!-- Metadata Display Options Card -->
                     <Border Background="{StaticResource BrushBgCard}" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1" CornerRadius="10" Padding="18" Margin="0,0,0,16">
                         <StackPanel>
-                            <TextBlock Text="🏷️ HIỂN THỊ TÊN ẢNH &amp; TÁC GIẢ (METADATA)" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushPrimaryAccent}" Margin="0,0,0,12"/>
+                            <TextBlock Text="{Binding MetadataSectionTitleText}" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushPrimaryAccent}" Margin="0,0,0,12"/>
                             <CheckBox Content="{Binding ShowWallpaperInfoOnDesktopText}" IsChecked="{Binding ShowWallpaperInfoOnDesktop, Mode=TwoWay}" FontSize="13" Margin="0,0,0,6"/>
-                            <TextBlock Text="💡 Tự động kết xuất thẻ chữ mờ bo góc nghệ thuật (Spotlight Glass Badge) ở góc dưới màn hình Desktop với độ phân giải gốc của ảnh." FontSize="11.5" Foreground="{StaticResource BrushTextMuted}" Margin="24,0,0,14" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding SpotlightHelpText}" FontSize="11.5" Foreground="{StaticResource BrushTextMuted}" Margin="24,0,0,14" TextWrapping="Wrap"/>
 
                             <CheckBox Content="{Binding ShowWallpaperInfoInAppText}" IsChecked="{Binding ShowWallpaperInfoInApp, Mode=TwoWay}" FontSize="13" Margin="0,0,0,6"/>
-                            <TextBlock Text="💡 Hiển thị tên tác phẩm, nhiếp ảnh gia và nguồn ảnh trên thanh Live Preview và thông báo khi đổi ảnh." FontSize="11.5" Foreground="{StaticResource BrushTextMuted}" Margin="24,0,0,0" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding AppMetaHelpText}" FontSize="11.5" Foreground="{StaticResource BrushTextMuted}" Margin="24,0,0,0" TextWrapping="Wrap"/>
                         </StackPanel>
                     </Border>
 
@@ -737,7 +737,7 @@
                                 </Grid.ColumnDefinitions>
                                 <StackPanel VerticalAlignment="Center">
                                     <TextBlock Text="{Binding MaxCachedImagesText}" FontSize="13" FontWeight="SemiBold"/>
-                                    <TextBlock Text="💡 Tự động xóa ảnh tạm cũ nhất (cuốn chiếu FIFO) khi tải ảnh mới để tránh tốn dung lượng ổ cứng." FontSize="11.5" Foreground="{StaticResource BrushTextMuted}" Margin="0,2,0,0"/>
+                                    <TextBlock Text="{Binding CacheHelpText}" FontSize="11.5" Foreground="{StaticResource BrushTextMuted}" Margin="0,2,0,0"/>
                                 </StackPanel>
                                 <ComboBox Grid.Column="1" ItemsSource="{Binding CacheLimitOptions}" SelectedItem="{Binding MaxCachedImages, Mode=TwoWay}" VerticalAlignment="Center" HorizontalContentAlignment="Center"/>
                             </Grid>
@@ -773,9 +773,9 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="🚫 DANH SÁCH CHẶN (BLACKLIST)" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushDangerAccent}"/>
+                                <TextBlock Text="{Binding BlacklistSectionTitleText}" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushDangerAccent}"/>
                                 <TextBlock Text="{Binding BlacklistCountText}" FontSize="12.5" Foreground="{StaticResource BrushTextSecondary}" Margin="0,3,0,0"/>
-                                <TextBlock Text="Những ảnh bị chặn sẽ không bao giờ xuất hiện lại trên màn hình của bạn." FontSize="11.5" Foreground="{StaticResource BrushTextMuted}" Margin="0,2,0,0"/>
+                                <TextBlock Text="{Binding BlacklistHelpText}" FontSize="11.5" Foreground="{StaticResource BrushTextMuted}" Margin="0,2,0,0"/>
                             </StackPanel>
                             <Button Content="{Binding ClearBlacklistBtnText}" Command="{Binding ClearBlacklistCommand}" Style="{StaticResource DangerButton}" Grid.Column="1" Width="180"/>
                         </Grid>
@@ -794,8 +794,8 @@
 
                 <!-- Status readout on bottom-left -->
                 <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="⚡ BackgroundSwitch đang hoạt động ngầm trên System Tray" FontSize="12" Foreground="{StaticResource BrushSuccessAccent}"/>
-                    <TextBlock Text="Bấm đúp icon khay hệ thống hoặc chuột phải để thao tác nhanh" FontSize="11" Foreground="{StaticResource BrushTextMuted}"/>
+                    <TextBlock Text="{Binding TrayActiveHintText}" FontSize="12" Foreground="{StaticResource BrushSuccessAccent}"/>
+                    <TextBlock Text="{Binding TrayActionHintText}" FontSize="11" Foreground="{StaticResource BrushTextMuted}"/>
                 </StackPanel>
 
                 <!-- Main Action Buttons on bottom-right -->

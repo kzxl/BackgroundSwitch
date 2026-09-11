@@ -649,6 +649,83 @@ public class MainViewModel : ViewModelBase
     public string ClearBlacklistBtnText => LocalizationManager.Get("UI_ClearBlacklistBtn");
     public string SaveBtnText => LocalizationManager.Get("UI_SaveBtn");
 
+    // Navigation Tabs & Header
+    public string NavSourcesText => LocalizationManager.Get("UI_NavSources");
+    public string NavDisplaysText => LocalizationManager.Get("UI_NavDisplays");
+    public string NavSettingsText => LocalizationManager.Get("UI_NavSettings");
+    public string PexelsDefaultBadgeText => LocalizationManager.Get("UI_PexelsDefaultBadge");
+
+    // Hero Preview Bar
+    public string PreviewPlaceholderText => LocalizationManager.Get("UI_PreviewPlaceholder");
+    public string SavePictureBtnText => LocalizationManager.Get("UI_SavePictureBtn");
+    public string ViewFileBtnText => LocalizationManager.Get("UI_ViewFileBtn");
+    public string BlacklistBtnText => LocalizationManager.Get("UI_BlacklistBtn");
+
+    // Tab 0: Sources
+    public string SelectSourceTitleText => LocalizationManager.Get("UI_SelectSourceTitle");
+    public string CardTitlePexelsText => LocalizationManager.Get("UI_CardTitlePexels");
+    public string CardTitleBingText => LocalizationManager.Get("UI_CardTitleBing");
+    public string CardTitleWallhavenText => LocalizationManager.Get("UI_CardTitleWallhaven");
+    public string CardTitleNasaText => LocalizationManager.Get("UI_CardTitleNasa");
+    public string CardTitleUnsplashText => LocalizationManager.Get("UI_CardTitleUnsplash");
+    public string CardTitleRedditText => LocalizationManager.Get("UI_CardTitleReddit");
+    public string CardTitleLocalText => LocalizationManager.Get("UI_CardTitleLocal");
+    public string BadgeUltraHdText => LocalizationManager.Get("UI_BadgeUltraHd");
+    public string BadgeDailyText => LocalizationManager.Get("UI_BadgeDaily");
+    public string BadgeArtText => LocalizationManager.Get("UI_BadgeArt");
+    public string BadgeSpaceText => LocalizationManager.Get("UI_BadgeSpace");
+    public string BadgeCommunityText => LocalizationManager.Get("UI_BadgeCommunity");
+    public string BadgeOfflineText => LocalizationManager.Get("UI_BadgeOffline");
+
+    public string CardPexelsDescText => LocalizationManager.Get("UI_CardPexelsDesc");
+    public string CardBingDescText => LocalizationManager.Get("UI_CardBingDesc");
+    public string CardWallhavenDescText => LocalizationManager.Get("UI_CardWallhavenDesc");
+    public string CardNasaDescText => LocalizationManager.Get("UI_CardNasaDesc");
+    public string CardUnsplashDescText => LocalizationManager.Get("UI_CardUnsplashDesc");
+    public string CardRedditDescText => LocalizationManager.Get("UI_CardRedditDesc");
+    public string CardLocalDescText => LocalizationManager.Get("UI_CardLocalDesc");
+
+    public string ConfigPexelsTitleText => LocalizationManager.Get("UI_ConfigPexelsTitle");
+    public string KeyValidText => LocalizationManager.Get("UI_KeyValid");
+    public string QuickTopicHintText => LocalizationManager.Get("UI_QuickTopicHint");
+    public string PexelsKeyHelpText => LocalizationManager.Get("UI_PexelsKeyHelp");
+    public string ConfigWallhavenTitleText => LocalizationManager.Get("UI_ConfigWallhavenTitle");
+    public string ConfigRedditTitleText => LocalizationManager.Get("UI_ConfigRedditTitle");
+    public string ConfigLocalTitleText => LocalizationManager.Get("UI_ConfigLocalTitle");
+    public string ConfigUnsplashTitleText => LocalizationManager.Get("UI_ConfigUnsplashTitle");
+    public string BingNoConfigHintText => LocalizationManager.Get("UI_BingNoConfigHint");
+    public string NasaNoConfigHintText => LocalizationManager.Get("UI_NasaNoConfigHint");
+
+    // Tab 1: Displays & Scale
+    public string ScaleFillText => LocalizationManager.Get("UI_ScaleFill");
+    public string ScaleFitText => LocalizationManager.Get("UI_ScaleFit");
+    public string ScaleStretchText => LocalizationManager.Get("UI_ScaleStretch");
+    public string ScaleCenterText => LocalizationManager.Get("UI_ScaleCenter");
+    public string ScaleTileText => LocalizationManager.Get("UI_ScaleTile");
+    public string ScaleSpanText => LocalizationManager.Get("UI_ScaleSpan");
+    public string DetectedMonitorsTitleText => LocalizationManager.Get("UI_DetectedMonitorsTitle");
+    public string ConnectedStatusText => LocalizationManager.Get("UI_ConnectedStatus");
+
+    // Tab 2: Settings & Presets
+    public string IntervalSectionTitleText => LocalizationManager.Get("UI_IntervalSectionTitle");
+    public string QuickIntervalTitleText => LocalizationManager.Get("UI_QuickIntervalTitle");
+    public string Preset15MinText => LocalizationManager.Get("UI_Preset15Min");
+    public string Preset30MinText => LocalizationManager.Get("UI_Preset30Min");
+    public string Preset1HourText => LocalizationManager.Get("UI_Preset1Hour");
+    public string Preset2HourText => LocalizationManager.Get("UI_Preset2Hour");
+    public string Preset4HourText => LocalizationManager.Get("UI_Preset4Hour");
+    public string Preset24HourText => LocalizationManager.Get("UI_Preset24Hour");
+    public string MetadataSectionTitleText => LocalizationManager.Get("UI_MetadataSectionTitle");
+    public string SpotlightHelpText => LocalizationManager.Get("UI_SpotlightHelpText");
+    public string AppMetaHelpText => LocalizationManager.Get("UI_AppMetaHelpText");
+    public string CacheHelpText => LocalizationManager.Get("UI_CacheHelpText");
+    public string BlacklistSectionTitleText => LocalizationManager.Get("UI_BlacklistSectionTitle");
+    public string BlacklistHelpText => LocalizationManager.Get("UI_BlacklistHelpText");
+
+    // Bottom Sticky Bar
+    public string TrayActiveHintText => LocalizationManager.Get("UI_TrayActiveHint");
+    public string TrayActionHintText => LocalizationManager.Get("UI_TrayActionHint");
+
     public void RefreshLocalizationProperties()
     {
         OnPropertyChanged(nameof(AppTitleText));
@@ -699,6 +776,71 @@ public class MainViewModel : ViewModelBase
         OnPropertyChanged(nameof(SaveBtnText));
         OnPropertyChanged(nameof(BlacklistCountText));
         OnPropertyChanged(nameof(CurrentWallpaperDetails));
+
+        // New properties
+        OnPropertyChanged(nameof(NavSourcesText));
+        OnPropertyChanged(nameof(NavDisplaysText));
+        OnPropertyChanged(nameof(NavSettingsText));
+        OnPropertyChanged(nameof(PexelsDefaultBadgeText));
+        OnPropertyChanged(nameof(PreviewPlaceholderText));
+        OnPropertyChanged(nameof(SavePictureBtnText));
+        OnPropertyChanged(nameof(ViewFileBtnText));
+        OnPropertyChanged(nameof(BlacklistBtnText));
+        OnPropertyChanged(nameof(SelectSourceTitleText));
+        OnPropertyChanged(nameof(CardTitlePexelsText));
+        OnPropertyChanged(nameof(CardTitleBingText));
+        OnPropertyChanged(nameof(CardTitleWallhavenText));
+        OnPropertyChanged(nameof(CardTitleNasaText));
+        OnPropertyChanged(nameof(CardTitleUnsplashText));
+        OnPropertyChanged(nameof(CardTitleRedditText));
+        OnPropertyChanged(nameof(CardTitleLocalText));
+        OnPropertyChanged(nameof(BadgeUltraHdText));
+        OnPropertyChanged(nameof(BadgeDailyText));
+        OnPropertyChanged(nameof(BadgeArtText));
+        OnPropertyChanged(nameof(BadgeSpaceText));
+        OnPropertyChanged(nameof(BadgeCommunityText));
+        OnPropertyChanged(nameof(BadgeOfflineText));
+        OnPropertyChanged(nameof(CardPexelsDescText));
+        OnPropertyChanged(nameof(CardBingDescText));
+        OnPropertyChanged(nameof(CardWallhavenDescText));
+        OnPropertyChanged(nameof(CardNasaDescText));
+        OnPropertyChanged(nameof(CardUnsplashDescText));
+        OnPropertyChanged(nameof(CardRedditDescText));
+        OnPropertyChanged(nameof(CardLocalDescText));
+        OnPropertyChanged(nameof(ConfigPexelsTitleText));
+        OnPropertyChanged(nameof(KeyValidText));
+        OnPropertyChanged(nameof(QuickTopicHintText));
+        OnPropertyChanged(nameof(PexelsKeyHelpText));
+        OnPropertyChanged(nameof(ConfigWallhavenTitleText));
+        OnPropertyChanged(nameof(ConfigRedditTitleText));
+        OnPropertyChanged(nameof(ConfigLocalTitleText));
+        OnPropertyChanged(nameof(ConfigUnsplashTitleText));
+        OnPropertyChanged(nameof(BingNoConfigHintText));
+        OnPropertyChanged(nameof(NasaNoConfigHintText));
+        OnPropertyChanged(nameof(ScaleFillText));
+        OnPropertyChanged(nameof(ScaleFitText));
+        OnPropertyChanged(nameof(ScaleStretchText));
+        OnPropertyChanged(nameof(ScaleCenterText));
+        OnPropertyChanged(nameof(ScaleTileText));
+        OnPropertyChanged(nameof(ScaleSpanText));
+        OnPropertyChanged(nameof(DetectedMonitorsTitleText));
+        OnPropertyChanged(nameof(ConnectedStatusText));
+        OnPropertyChanged(nameof(IntervalSectionTitleText));
+        OnPropertyChanged(nameof(QuickIntervalTitleText));
+        OnPropertyChanged(nameof(Preset15MinText));
+        OnPropertyChanged(nameof(Preset30MinText));
+        OnPropertyChanged(nameof(Preset1HourText));
+        OnPropertyChanged(nameof(Preset2HourText));
+        OnPropertyChanged(nameof(Preset4HourText));
+        OnPropertyChanged(nameof(Preset24HourText));
+        OnPropertyChanged(nameof(MetadataSectionTitleText));
+        OnPropertyChanged(nameof(SpotlightHelpText));
+        OnPropertyChanged(nameof(AppMetaHelpText));
+        OnPropertyChanged(nameof(CacheHelpText));
+        OnPropertyChanged(nameof(BlacklistSectionTitleText));
+        OnPropertyChanged(nameof(BlacklistHelpText));
+        OnPropertyChanged(nameof(TrayActiveHintText));
+        OnPropertyChanged(nameof(TrayActionHintText));
 
         if (!IsChangingWallpaper)
         {
