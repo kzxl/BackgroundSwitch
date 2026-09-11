@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="H.NotifyIcon.Wpf" Version="2.4.1" />
+    <PackageReference Include="ZeroUI.Wpf" Version="1.4.0" />
   </ItemGroup>
 
 </Project>

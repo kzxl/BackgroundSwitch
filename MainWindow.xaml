@@ -5,7 +5,7 @@
         xmlns:common="clr-namespace:BackgroundSwitch.Common"
         Title="{Binding AppTitleText}" Height="840" Width="920" MinHeight="750" MinWidth="860"
         WindowStartupLocation="CenterScreen" ResizeMode="CanResizeWithGrip"
-        Background="#0F111A" Foreground="#F1F5F9"
+        Background="{DynamicResource ZeroUI.BgPrimary}" Foreground="{DynamicResource ZeroUI.TextPrimary}"
         Closing="Window_Closing">
 
     <Window.Resources>
@@ -13,73 +13,9 @@
         <common:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVis"/>
         <common:ImagePathToBitmapConverter x:Key="ImagePathToBitmap"/>
 
-        <!-- Design Palette Tokens (AgentOption wpf-ui standards) -->
-        <SolidColorBrush x:Key="BrushBgDark" Color="#0F111A"/>
-        <SolidColorBrush x:Key="BrushBgCard" Color="#171926"/>
-        <SolidColorBrush x:Key="BrushBgCardElevated" Color="#1E2132"/>
-        <SolidColorBrush x:Key="BrushBgInput" Color="#131522"/>
-        <SolidColorBrush x:Key="BrushBgHover" Color="#24283E"/>
-        <SolidColorBrush x:Key="BrushBorderDefault" Color="#2A2F4A"/>
-        <SolidColorBrush x:Key="BrushBorderSubtle" Color="#1E2235"/>
-        <SolidColorBrush x:Key="BrushPrimaryAccent" Color="#818CF8"/>
-        <SolidColorBrush x:Key="BrushPrimaryAccentDark" Color="#6366F1"/>
-        <SolidColorBrush x:Key="BrushSecondaryAccent" Color="#A78BFA"/>
-        <SolidColorBrush x:Key="BrushTextPrimary" Color="#F1F5F9"/>
-        <SolidColorBrush x:Key="BrushTextSecondary" Color="#94A3B8"/>
-        <SolidColorBrush x:Key="BrushTextMuted" Color="#64748B"/>
-        <SolidColorBrush x:Key="BrushDangerAccent" Color="#F38BA8"/>
-        <SolidColorBrush x:Key="BrushSuccessAccent" Color="#A6E3A1"/>
-        <SolidColorBrush x:Key="BrushWarningAccent" Color="#F9E2AF"/>
-
-        <!-- TextBlock Default -->
-        <Style TargetType="TextBlock">
-            <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
-            <Setter Property="FontFamily" Value="Segoe UI"/>
-        </Style>
-
-        <!-- Modern Input Styles -->
-        <Style TargetType="TextBox">
-            <Setter Property="Background" Value="{StaticResource BrushBgInput}"/>
-            <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BrushBorderDefault}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="12,8"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="CaretBrush" Value="{StaticResource BrushPrimaryAccent}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="TextBox">
-                        <Border x:Name="border" Background="{TemplateBinding Background}" 
-                                BorderBrush="{TemplateBinding BorderBrush}" 
-                                BorderThickness="{TemplateBinding BorderThickness}" 
-                                CornerRadius="8">
-                            <ScrollViewer x:Name="PART_ContentHost" Focusable="false" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource BrushPrimaryAccent}"/>
-                            </Trigger>
-                            <Trigger Property="IsKeyboardFocused" Value="True">
-                                <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource BrushPrimaryAccent}"/>
-                                <Setter TargetName="border" Property="Background" Value="#1A1D2E"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style TargetType="ComboBox">
-            <Setter Property="Background" Value="{StaticResource BrushBgInput}"/>
-            <Setter Property="Foreground" Value="#0F111A"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BrushBorderDefault}"/>
-            <Setter Property="Padding" Value="10,6"/>
-            <Setter Property="FontSize" Value="13"/>
-        </Style>
-
-        <!-- Primary Action Button with Gradient -->
+        <!-- Primary Action Button with Gradient (ZeroUI High Contrast) -->
         <Style x:Key="AccentButton" TargetType="Button">
-            <Setter Property="Foreground" Value="#0F111A"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="FontSize" Value="13.5"/>
             <Setter Property="Cursor" Value="Hand"/>

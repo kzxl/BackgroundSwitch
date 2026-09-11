@@ -47,6 +47,17 @@ public partial class App : Application
         base.OnStartup(e);
         ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
+        // Initialize ZeroUI Standard Theme Engine & Control Styles
+        ZeroUI.Core.Theme.ZeroSkinManager.ResetToDefaults();
+        ZeroUI.Wpf.Theme.ZeroThemeEngine.Initialize(this, "obsidian_dark");
+        ZeroUI.Wpf.Theme.ZeroWpfStyles.ApplyStyles(this);
+        SyncZeroUiTokens();
+
+        ZeroUI.Wpf.Theme.ZeroWpfTheme.ThemeChanged += () =>
+        {
+            Dispatcher.BeginInvoke(new Action(SyncZeroUiTokens));
+        };
+
         // 2. Load Settings & Localization
         _settings = AppSettings.Load();
         UpdateAppLanguage(_settings.Language);
@@ -129,6 +140,26 @@ public partial class App : Application
             SetProcessWorkingSetSize(Process.GetCurrentProcess().Handle, -1, -1);
         }
         catch { }
+    }
+
+    private void SyncZeroUiTokens()
+    {
+        Resources["BrushBgDark"] = Resources["ZeroUI.BgPrimary"];
+        Resources["BrushBgCard"] = Resources["ZeroUI.BgCard"];
+        Resources["BrushBgCardElevated"] = Resources["ZeroUI.BgActive"];
+        Resources["BrushBgInput"] = Resources["ZeroUI.BgInput"];
+        Resources["BrushBgHover"] = Resources["ZeroUI.BgHover"];
+        Resources["BrushBorderDefault"] = Resources["ZeroUI.BorderDefault"];
+        Resources["BrushBorderSubtle"] = Resources["ZeroUI.BorderSubtle"];
+        Resources["BrushPrimaryAccent"] = Resources["ZeroUI.PrimaryAccent"];
+        Resources["BrushPrimaryAccentDark"] = Resources["ZeroUI.PrimaryAccentDark"];
+        Resources["BrushSecondaryAccent"] = Resources["ZeroUI.SecondaryAccent"];
+        Resources["BrushTextPrimary"] = Resources["ZeroUI.TextPrimary"];
+        Resources["BrushTextSecondary"] = Resources["ZeroUI.TextSecondary"];
+        Resources["BrushTextMuted"] = Resources["ZeroUI.TextMuted"];
+        Resources["BrushDangerAccent"] = Resources["ZeroUI.DangerAccent"];
+        Resources["BrushSuccessAccent"] = Resources["ZeroUI.SuccessAccent"];
+        Resources["BrushWarningAccent"] = Resources["ZeroUI.WarningAccent"];
     }
 
     public void ExitApplication()
