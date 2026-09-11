@@ -111,8 +111,15 @@ public class Scheduler : IDisposable
         }
     }
 
+    private readonly SemaphoreSlim _wallpaperLock = new(1, 1);
+
     public async Task<bool> ChangeWallpaperAsync()
     {
+        if (!await _wallpaperLock.WaitAsync(0))
+        {
+            return false;
+        }
+
         try
         {
             _cts?.Cancel();
@@ -197,6 +204,10 @@ public class Scheduler : IDisposable
             Debug.WriteLine($"[Scheduler] Error during wallpaper change: {ex.Message}");
             OnError?.Invoke(ex.Message);
             return false;
+        }
+        finally
+        {
+            _wallpaperLock.Release();
         }
     }
 

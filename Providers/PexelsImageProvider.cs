@@ -27,14 +27,14 @@ public class PexelsImageProvider : BaseHttpImageProvider
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                int randomPage = _random.Next(1, 100);
-                string url = $"https://api.pexels.com/v1/search?query={Uri.EscapeDataString(_query)}&per_page=1&page={randomPage}";
+                int randomPage = _random.Next(1, 10);
+                string url = $"https://api.pexels.com/v1/search?query={Uri.EscapeDataString(_query)}&per_page=15&page={randomPage}";
 
                 using var request = new HttpRequestMessage(HttpMethod.Get, url);
                 request.Headers.Add("Authorization", _apiKey);
 
                 using var response = await SharedHttpClient.SendAsync(request, cancellationToken);
-                response.EnsureSuccessStatusCode();
+                if (!response.IsSuccessStatusCode) continue;
 
                 var jsonString = await response.Content.ReadAsStringAsync(cancellationToken);
                 using var document = JsonDocument.Parse(jsonString);
@@ -42,17 +42,26 @@ public class PexelsImageProvider : BaseHttpImageProvider
 
                 if (root.TryGetProperty("photos", out var photos) && photos.GetArrayLength() > 0)
                 {
-                    var photo = photos[0];
-                    if (photo.TryGetProperty("src", out var src) && src.TryGetProperty("original", out var imageUrlElement))
+                    var candidates = new List<string>();
+                    foreach (var photo in photos.EnumerateArray())
                     {
-                        var imageUrl = imageUrlElement.GetString();
-                        if (!string.IsNullOrEmpty(imageUrl) && !BlacklistManager.Instance.IsBlacklisted(imageUrl))
+                        if (photo.TryGetProperty("src", out var src) && src.TryGetProperty("original", out var imgEl))
                         {
-                            var localPath = await DownloadAndCacheImageAsync(imageUrl, "Pexels", cancellationToken);
-                            if (!string.IsNullOrEmpty(localPath))
+                            var imgUrl = imgEl.GetString();
+                            if (!string.IsNullOrEmpty(imgUrl) && !BlacklistManager.Instance.IsBlacklisted(imgUrl))
                             {
-                                return localPath;
+                                candidates.Add(imgUrl);
                             }
+                        }
+                    }
+
+                    if (candidates.Count > 0)
+                    {
+                        var chosenUrl = candidates[_random.Next(candidates.Count)];
+                        var localPath = await DownloadAndCacheImageAsync(chosenUrl, "Pexels", cancellationToken);
+                        if (!string.IsNullOrEmpty(localPath))
+                        {
+                            return localPath;
                         }
                     }
                 }

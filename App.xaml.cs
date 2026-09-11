@@ -89,6 +89,12 @@ public partial class App : Application
 
     public void ShowMainWindow()
     {
+        if (!Dispatcher.CheckAccess())
+        {
+            Dispatcher.BeginInvoke(new Action(ShowMainWindow));
+            return;
+        }
+
         if (_mainWindow == null || !_mainWindow.IsLoaded)
         {
             var viewModel = new MainViewModel(_settings, _scheduler!, () =>
