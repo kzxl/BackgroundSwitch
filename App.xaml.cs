@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
@@ -32,6 +33,16 @@ public partial class App : Application
             Shutdown();
             return;
         }
+
+        AppDomain.CurrentDomain.UnhandledException += (_, ev) =>
+        {
+            try { File.AppendAllText(Path.Combine(Path.GetTempPath(), "BackgroundSwitch_error.log"), $"[{DateTime.Now}] [Unhandled] {ev.ExceptionObject}\n"); } catch { }
+        };
+        DispatcherUnhandledException += (_, ev) =>
+        {
+            try { File.AppendAllText(Path.Combine(Path.GetTempPath(), "BackgroundSwitch_error.log"), $"[{DateTime.Now}] [Dispatcher] {ev.Exception}\n"); } catch { }
+            ev.Handled = true;
+        };
 
         base.OnStartup(e);
         ShutdownMode = ShutdownMode.OnExplicitShutdown;

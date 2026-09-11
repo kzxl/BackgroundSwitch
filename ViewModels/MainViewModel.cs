@@ -1,4 +1,6 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.IO;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
@@ -6,6 +8,7 @@ using BackgroundSwitch.Common;
 using BackgroundSwitch.Models;
 using BackgroundSwitch.Services;
 using Microsoft.Win32;
+using Application = System.Windows.Application;
 
 namespace BackgroundSwitch.ViewModels;
 
@@ -15,10 +18,13 @@ public class MainViewModel : ViewModelBase
     private readonly Scheduler _scheduler;
     private readonly Action _requestCloseOrHide;
 
-    // UI state
+    // Navigation Tabs
+    private int _selectedTabIndex = 0; // 0 = Sources, 1 = Displays, 2 = Settings
+
+    // Settings state
     private WallpaperMode _mode;
     private WallpaperScale _scale;
-    private string _sourceType = "BingDaily";
+    private string _sourceType = "Pexels";
     private string _redditSubreddit = "wallpapers";
     private string _wallhavenQuery = "nature";
     private string _wallhavenApiKey = string.Empty;
@@ -31,17 +37,34 @@ public class MainViewModel : ViewModelBase
     private bool _autoStart = true;
     private string _language = "bilingual";
     private int _blacklistCount;
+
+    // Live preview & status
+    private string? _currentWallpaperPath;
     private bool _isChangingWallpaper;
     private string _providerDescription = string.Empty;
     private string _changeNowButtonText = "🔄 Đổi hình nền ngay";
 
+    // In-Window Toast / InfoBar
+    private string _statusMessage = string.Empty;
+    private string _statusSeverity = "Info"; // "Success", "Info", "Warning", "Error"
+    private bool _isStatusVisible;
+
     public ObservableCollection<MonitorInfoItem> Monitors { get; } = [];
 
     // Commands
+    public ICommand SelectTabCommand { get; }
     public ICommand BrowseFolderCommand { get; }
     public ICommand ClearBlacklistCommand { get; }
     public ICommand ChangeNowCommand { get; }
     public ICommand SaveCommand { get; }
+    public ICommand SelectPexelsTagCommand { get; }
+    public ICommand SelectRedditTagCommand { get; }
+    public ICommand SelectWallhavenTagCommand { get; }
+    public ICommand SelectIntervalPresetCommand { get; }
+    public ICommand SaveCurrentPictureAsCommand { get; }
+    public ICommand OpenCurrentInExplorerCommand { get; }
+    public ICommand BlacklistCurrentWallpaperCommand { get; }
+    public ICommand DismissStatusCommand { get; }
 
     public MainViewModel(AppSettings settings, Scheduler scheduler, Action requestCloseOrHide)
     {
@@ -49,15 +72,177 @@ public class MainViewModel : ViewModelBase
         _scheduler = scheduler ?? throw new ArgumentNullException(nameof(scheduler));
         _requestCloseOrHide = requestCloseOrHide ?? throw new ArgumentNullException(nameof(requestCloseOrHide));
 
+        SelectTabCommand = new RelayCommand(p =>
+        {
+            if (p != null && int.TryParse(p.ToString(), out int tab))
+            {
+                SelectedTabIndex = tab;
+            }
+        });
+
         BrowseFolderCommand = new RelayCommand(BrowseFolder);
         ClearBlacklistCommand = new RelayCommand(ClearBlacklist);
         ChangeNowCommand = new AsyncRelayCommand(ChangeWallpaperNowAsync, () => !IsChangingWallpaper);
         SaveCommand = new RelayCommand(SaveSettings);
 
+        SelectPexelsTagCommand = new RelayCommand(p =>
+        {
+            if (p is string tag && !string.IsNullOrWhiteSpace(tag))
+            {
+                PexelsQuery = tag;
+                ShowToast($"Đã chọn từ khóa: {tag}", "Info");
+            }
+        });
+
+        SelectRedditTagCommand = new RelayCommand(p =>
+        {
+            if (p is string sub && !string.IsNullOrWhiteSpace(sub))
+            {
+                RedditSubreddit = sub;
+                ShowToast($"Đã chọn subreddit: r/{sub}", "Info");
+            }
+        });
+
+        SelectWallhavenTagCommand = new RelayCommand(p =>
+        {
+            if (p is string q && !string.IsNullOrWhiteSpace(q))
+            {
+                WallhavenQuery = q;
+                ShowToast($"Đã chọn từ khóa: {q}", "Info");
+            }
+        });
+
+        SelectIntervalPresetCommand = new RelayCommand(p =>
+        {
+            if (p != null && int.TryParse(p.ToString(), out int mins))
+            {
+                IntervalMinutes = mins;
+                ShowToast($"Tần suất đổi ảnh: {mins} phút", "Info");
+            }
+        });
+
+        SaveCurrentPictureAsCommand = new RelayCommand(SaveCurrentPictureAs);
+        OpenCurrentInExplorerCommand = new RelayCommand(OpenCurrentInExplorer);
+        BlacklistCurrentWallpaperCommand = new AsyncRelayCommand(BlacklistCurrentAsync);
+        DismissStatusCommand = new RelayCommand(() => IsStatusVisible = false);
+
+        // Listen to wallpaper changes from scheduler
+        _scheduler.OnWallpaperChanged += OnWallpaperChangedCallback;
+
         LoadFromSettings();
     }
 
-    #region Observable Properties
+    private void OnWallpaperChangedCallback()
+    {
+        Application.Current?.Dispatcher?.BeginInvoke(new Action(() =>
+        {
+            CurrentWallpaperPath = _scheduler.GetCurrentActiveWallpaperPath();
+            BlacklistCount = BlacklistManager.Instance.Count;
+        }));
+    }
+
+    #region Navigation Tab Properties
+
+    public int SelectedTabIndex
+    {
+        get => _selectedTabIndex;
+        set
+        {
+            if (SetProperty(ref _selectedTabIndex, value))
+            {
+                OnPropertyChanged(nameof(IsTabSources));
+                OnPropertyChanged(nameof(IsTabDisplays));
+                OnPropertyChanged(nameof(IsTabSettings));
+            }
+        }
+    }
+
+    public bool IsTabSources => SelectedTabIndex == 0;
+    public bool IsTabDisplays => SelectedTabIndex == 1;
+    public bool IsTabSettings => SelectedTabIndex == 2;
+
+    #endregion
+
+    #region Live Wallpaper Preview Properties
+
+    public string? CurrentWallpaperPath
+    {
+        get => _currentWallpaperPath;
+        set
+        {
+            if (SetProperty(ref _currentWallpaperPath, value))
+            {
+                OnPropertyChanged(nameof(HasCurrentWallpaper));
+                OnPropertyChanged(nameof(CurrentWallpaperFileName));
+                OnPropertyChanged(nameof(CurrentWallpaperDetails));
+            }
+        }
+    }
+
+    public bool HasCurrentWallpaper => !string.IsNullOrEmpty(CurrentWallpaperPath) && File.Exists(CurrentWallpaperPath);
+
+    public string CurrentWallpaperFileName
+    {
+        get
+        {
+            if (string.IsNullOrEmpty(CurrentWallpaperPath)) return "Chưa có hình nền";
+            return Path.GetFileName(CurrentWallpaperPath);
+        }
+    }
+
+    public string CurrentWallpaperDetails
+    {
+        get
+        {
+            if (string.IsNullOrEmpty(CurrentWallpaperPath) || !File.Exists(CurrentWallpaperPath))
+            {
+                return "Đang chờ đổi ảnh tự động...";
+            }
+            try
+            {
+                var fi = new FileInfo(CurrentWallpaperPath);
+                double sizeKb = fi.Length / 1024.0;
+                return $"Nguồn: {SourceType} | Kích thước: {sizeKb:F1} KB | Cập nhật: {fi.LastWriteTime:HH:mm:ss}";
+            }
+            catch
+            {
+                return $"Nguồn: {SourceType}";
+            }
+        }
+    }
+
+    #endregion
+
+    #region Status Toast / InfoBar Properties
+
+    public string StatusMessage
+    {
+        get => _statusMessage;
+        set => SetProperty(ref _statusMessage, value);
+    }
+
+    public string StatusSeverity
+    {
+        get => _statusSeverity;
+        set => SetProperty(ref _statusSeverity, value);
+    }
+
+    public bool IsStatusVisible
+    {
+        get => _isStatusVisible;
+        set => SetProperty(ref _isStatusVisible, value);
+    }
+
+    public void ShowToast(string message, string severity = "Success")
+    {
+        StatusMessage = message;
+        StatusSeverity = severity;
+        IsStatusVisible = true;
+    }
+
+    #endregion
+
+    #region Observable Settings Properties
 
     public WallpaperMode Mode
     {
@@ -360,6 +545,7 @@ public class MainViewModel : ViewModelBase
         OnPropertyChanged(nameof(ClearBlacklistBtnText));
         OnPropertyChanged(nameof(SaveBtnText));
         OnPropertyChanged(nameof(BlacklistCountText));
+        OnPropertyChanged(nameof(CurrentWallpaperDetails));
 
         if (!IsChangingWallpaper)
         {
@@ -394,7 +580,7 @@ public class MainViewModel : ViewModelBase
         AutoStart = _settings.AutoStart;
 
         var source = _settings.GlobalSource;
-        SourceType = string.IsNullOrWhiteSpace(source.Type) ? "BingDaily" : source.Type;
+        SourceType = string.IsNullOrWhiteSpace(source.Type) ? "Pexels" : source.Type;
         RedditSubreddit = string.IsNullOrWhiteSpace(source.RedditSubreddit) ? "wallpapers" : source.RedditSubreddit;
         WallhavenQuery = string.IsNullOrWhiteSpace(source.WallhavenQuery) ? "nature" : source.WallhavenQuery;
         WallhavenApiKey = source.WallhavenApiKey ?? string.Empty;
@@ -412,6 +598,8 @@ public class MainViewModel : ViewModelBase
         }
 
         BlacklistCount = BlacklistManager.Instance.Count;
+        CurrentWallpaperPath = _scheduler.GetCurrentActiveWallpaperPath();
+
         RefreshLocalizationProperties();
     }
 
@@ -462,8 +650,64 @@ public class MainViewModel : ViewModelBase
         {
             BlacklistManager.Instance.Clear();
             BlacklistCount = BlacklistManager.Instance.Count;
-            System.Windows.MessageBox.Show(LocalizationManager.Get("Msg_ClearBlacklistDone"), "BackgroundSwitch", MessageBoxButton.OK, MessageBoxImage.Information);
+            ShowToast(LocalizationManager.Get("Msg_ClearBlacklistDone"), "Success");
         }
+    }
+
+    private void SaveCurrentPictureAs()
+    {
+        var currentImg = _scheduler.GetCurrentActiveWallpaperPath();
+        if (string.IsNullOrEmpty(currentImg) || !File.Exists(currentImg))
+        {
+            ShowToast("Chưa có ảnh nền đang hoạt động để lưu.", "Warning");
+            return;
+        }
+
+        var saveDialog = new Microsoft.Win32.SaveFileDialog
+        {
+            Title = "Save Wallpaper As",
+            Filter = "JPEG Image (*.jpg)|*.jpg|PNG Image (*.png)|*.png|All Files (*.*)|*.*",
+            FileName = $"Wallpaper_{DateTime.Now:yyyyMMdd_HHmmss}.jpg",
+            InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures)
+        };
+
+        if (saveDialog.ShowDialog() == true)
+        {
+            try
+            {
+                File.Copy(currentImg, saveDialog.FileName, true);
+                ShowToast("Đã lưu hình nền vào máy thành công!", "Success");
+            }
+            catch (Exception ex)
+            {
+                ShowToast($"Không thể lưu ảnh: {ex.Message}", "Error");
+            }
+        }
+    }
+
+    private void OpenCurrentInExplorer()
+    {
+        var currentImg = _scheduler.GetCurrentActiveWallpaperPath();
+        if (!string.IsNullOrEmpty(currentImg) && File.Exists(currentImg))
+        {
+            try
+            {
+                Process.Start("explorer.exe", $"/select,\"{currentImg}\"");
+            }
+            catch { }
+        }
+        else
+        {
+            TrayIconService.OpenCacheFolder();
+        }
+    }
+
+    private async Task BlacklistCurrentAsync()
+    {
+        await _scheduler.BlacklistCurrentAsync();
+        CurrentWallpaperPath = _scheduler.GetCurrentActiveWallpaperPath();
+        BlacklistCount = BlacklistManager.Instance.Count;
+        ShowToast("Đã chặn ảnh hiện tại và chuyển sang ảnh mới.", "Info");
     }
 
     private async Task ChangeWallpaperNowAsync()
@@ -475,16 +719,19 @@ public class MainViewModel : ViewModelBase
             _scheduler.UpdateSettings(_settings);
 
             bool success = await _scheduler.ChangeWallpaperAsync();
-            if (!success)
+            if (success)
             {
-                System.Windows.MessageBox.Show(
-                    "Không thể đổi hình nền từ nguồn đã chọn.\n- Nếu dùng Local Folder: Hãy chọn thư mục có chứa ảnh (.jpg, .png).\n- Nếu dùng Online (Bing/Reddit/Wallhaven/Pexels): Hãy kiểm tra kết nối mạng internet.",
-                    "BackgroundSwitch", MessageBoxButton.OK, MessageBoxImage.Warning);
+                CurrentWallpaperPath = _scheduler.GetCurrentActiveWallpaperPath();
+                ShowToast("Đã đổi hình nền thành công!", "Success");
+            }
+            else
+            {
+                ShowToast("Không thể đổi ảnh từ nguồn này. Vui lòng kiểm tra kết nối mạng hoặc từ khóa.", "Warning");
             }
         }
         catch (Exception ex)
         {
-            System.Windows.MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            ShowToast($"Lỗi: {ex.Message}", "Error");
         }
         finally
         {
@@ -496,7 +743,7 @@ public class MainViewModel : ViewModelBase
     {
         if (IntervalMinutes <= 0)
         {
-            System.Windows.MessageBox.Show("Interval must be a valid positive number (minutes).", "Validation", MessageBoxButton.OK, MessageBoxImage.Warning);
+            ShowToast("Tần suất đổi ảnh phải là số phút dương (>0).", "Warning");
             return;
         }
 
@@ -507,7 +754,7 @@ public class MainViewModel : ViewModelBase
         _scheduler.UpdateSettings(_settings);
         _scheduler.Start();
 
-        System.Windows.MessageBox.Show(LocalizationManager.Get("Msg_SaveSuccess"), "BackgroundSwitch", MessageBoxButton.OK, MessageBoxImage.Information);
+        ShowToast(LocalizationManager.Get("Msg_SaveSuccess"), "Success");
         _requestCloseOrHide();
     }
 
@@ -534,7 +781,7 @@ public class MainViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[AutoStart] Error configuring registry: {ex.Message}");
+            Debug.WriteLine($"[AutoStart] Error configuring registry: {ex.Message}");
         }
     }
 }

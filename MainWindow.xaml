@@ -2,41 +2,48 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:models="clr-namespace:BackgroundSwitch.Models"
-        Title="{Binding AppTitleText}" Height="750" Width="780"
-        WindowStartupLocation="CenterScreen" ResizeMode="CanMinimize"
-        Background="#11131F" Foreground="#F1F5F9"
+        xmlns:common="clr-namespace:BackgroundSwitch.Common"
+        Title="{Binding AppTitleText}" Height="840" Width="920" MinHeight="750" MinWidth="860"
+        WindowStartupLocation="CenterScreen" ResizeMode="CanResizeWithGrip"
+        Background="#0F111A" Foreground="#F1F5F9"
         Closing="Window_Closing">
 
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <common:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVis"/>
+        <common:ImagePathToBitmapConverter x:Key="ImagePathToBitmap"/>
 
-        <!-- Modern Dark Palette Tokens (AgentOption wpf-ui standards) -->
-        <SolidColorBrush x:Key="BrushBgDark" Color="#11131F"/>
-        <SolidColorBrush x:Key="BrushBgCard" Color="#181A28"/>
-        <SolidColorBrush x:Key="BrushBgInput" Color="#1D2034"/>
-        <SolidColorBrush x:Key="BrushBgHover" Color="#262A44"/>
-        <SolidColorBrush x:Key="BrushBorderDefault" Color="#2E344E"/>
-        <SolidColorBrush x:Key="BrushBorderSubtle" Color="#23273C"/>
+        <!-- Design Palette Tokens (AgentOption wpf-ui standards) -->
+        <SolidColorBrush x:Key="BrushBgDark" Color="#0F111A"/>
+        <SolidColorBrush x:Key="BrushBgCard" Color="#171926"/>
+        <SolidColorBrush x:Key="BrushBgCardElevated" Color="#1E2132"/>
+        <SolidColorBrush x:Key="BrushBgInput" Color="#131522"/>
+        <SolidColorBrush x:Key="BrushBgHover" Color="#24283E"/>
+        <SolidColorBrush x:Key="BrushBorderDefault" Color="#2A2F4A"/>
+        <SolidColorBrush x:Key="BrushBorderSubtle" Color="#1E2235"/>
         <SolidColorBrush x:Key="BrushPrimaryAccent" Color="#818CF8"/>
         <SolidColorBrush x:Key="BrushPrimaryAccentDark" Color="#6366F1"/>
+        <SolidColorBrush x:Key="BrushSecondaryAccent" Color="#A78BFA"/>
         <SolidColorBrush x:Key="BrushTextPrimary" Color="#F1F5F9"/>
         <SolidColorBrush x:Key="BrushTextSecondary" Color="#94A3B8"/>
         <SolidColorBrush x:Key="BrushTextMuted" Color="#64748B"/>
         <SolidColorBrush x:Key="BrushDangerAccent" Color="#F38BA8"/>
         <SolidColorBrush x:Key="BrushSuccessAccent" Color="#A6E3A1"/>
+        <SolidColorBrush x:Key="BrushWarningAccent" Color="#F9E2AF"/>
 
-        <!-- Typography & Control Templates -->
+        <!-- TextBlock Default -->
         <Style TargetType="TextBlock">
             <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
             <Setter Property="FontFamily" Value="Segoe UI"/>
         </Style>
 
+        <!-- Modern Input Styles -->
         <Style TargetType="TextBox">
             <Setter Property="Background" Value="{StaticResource BrushBgInput}"/>
             <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
             <Setter Property="BorderBrush" Value="{StaticResource BrushBorderDefault}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Padding" Value="12,8"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="CaretBrush" Value="{StaticResource BrushPrimaryAccent}"/>
             <Setter Property="Template">
@@ -45,7 +52,7 @@
                         <Border x:Name="border" Background="{TemplateBinding Background}" 
                                 BorderBrush="{TemplateBinding BorderBrush}" 
                                 BorderThickness="{TemplateBinding BorderThickness}" 
-                                CornerRadius="6">
+                                CornerRadius="8">
                             <ScrollViewer x:Name="PART_ContentHost" Focusable="false" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"/>
                         </Border>
                         <ControlTemplate.Triggers>
@@ -54,7 +61,7 @@
                             </Trigger>
                             <Trigger Property="IsKeyboardFocused" Value="True">
                                 <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource BrushPrimaryAccent}"/>
-                                <Setter TargetName="border" Property="Background" Value="#22253D"/>
+                                <Setter TargetName="border" Property="Background" Value="#1A1D2E"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -64,49 +71,103 @@
 
         <Style TargetType="ComboBox">
             <Setter Property="Background" Value="{StaticResource BrushBgInput}"/>
-            <Setter Property="Foreground" Value="#11131F"/>
+            <Setter Property="Foreground" Value="#0F111A"/>
             <Setter Property="BorderBrush" Value="{StaticResource BrushBorderDefault}"/>
             <Setter Property="Padding" Value="10,6"/>
             <Setter Property="FontSize" Value="13"/>
         </Style>
 
-        <Style TargetType="RadioButton">
-            <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
-            <Setter Property="FontSize" Value="13"/>
+        <!-- Primary Action Button with Gradient -->
+        <Style x:Key="AccentButton" TargetType="Button">
+            <Setter Property="Foreground" Value="#0F111A"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="13.5"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Margin" Value="0,0,16,8"/>
+            <Setter Property="Padding" Value="18,10"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="btnBorder" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#818CF8" Offset="0"/>
+                                    <GradientStop Color="#6366F1" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="btnBorder" Property="Opacity" Value="0.9"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="btnBorder" Property="Opacity" Value="0.75"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="btnBorder" Property="Opacity" Value="0.4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
-        <Style TargetType="CheckBox">
+        <!-- Secondary Button -->
+        <Style x:Key="SecondaryButton" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource BrushBgCardElevated}"/>
             <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
-
-        <Style TargetType="Button">
-            <Setter Property="Background" Value="{StaticResource BrushBorderDefault}"/>
-            <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="14,8"/>
-            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BrushBorderDefault}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="12.5"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="14,8"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="border" Background="{TemplateBinding Background}" 
-                                CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="border" Property="Background" Value="{StaticResource BrushBgHover}"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource BrushPrimaryAccent}"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="border" Property="Background" Value="#32385C"/>
                             </Trigger>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="border" Property="Opacity" Value="0.5"/>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Danger Button -->
+        <Style x:Key="DangerButton" TargetType="Button">
+            <Setter Property="Background" Value="#2A1620"/>
+            <Setter Property="Foreground" Value="{StaticResource BrushDangerAccent}"/>
+            <Setter Property="BorderBrush" Value="#4D1F2E"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#F38BA8"/>
+                                <Setter Property="Foreground" Value="#0F111A"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -114,25 +175,34 @@
             </Setter>
         </Style>
 
-        <Style x:Key="AccentButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-            <Setter Property="Background" Value="{StaticResource BrushPrimaryAccent}"/>
-            <Setter Property="Foreground" Value="#11131F"/>
+        <!-- Interactive Chip Button Style -->
+        <Style x:Key="ChipButton" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource BrushBgInput}"/>
+            <Setter Property="Foreground" Value="{StaticResource BrushTextSecondary}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BrushBorderSubtle}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="12,5"/>
+            <Setter Property="Margin" Value="0,0,8,8"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="border" Background="{TemplateBinding Background}" 
-                                CornerRadius="6" Padding="{TemplateBinding Padding}">
+                        <Border x:Name="chipBorder" Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="14" Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#A5B4FC"/>
+                                <Setter TargetName="chipBorder" Property="Background" Value="{StaticResource BrushBgHover}"/>
+                                <Setter TargetName="chipBorder" Property="BorderBrush" Value="{StaticResource BrushPrimaryAccent}"/>
+                                <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="{StaticResource BrushPrimaryAccentDark}"/>
-                            </Trigger>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="border" Property="Opacity" Value="0.5"/>
+                                <Setter TargetName="chipBorder" Property="Background" Value="{StaticResource BrushPrimaryAccent}"/>
+                                <Setter Property="Foreground" Value="#0F111A"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -140,25 +210,55 @@
             </Setter>
         </Style>
 
-        <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-            <Setter Property="Background" Value="{StaticResource BrushDangerAccent}"/>
-            <Setter Property="Foreground" Value="#11131F"/>
+        <!-- Navigation Segment Tab Style -->
+        <Style x:Key="NavTabStyle" TargetType="RadioButton">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Foreground" Value="{StaticResource BrushTextSecondary}"/>
+            <Setter Property="FontSize" Value="13.5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="18,10"/>
             <Setter Property="Template">
                 <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="border" Background="{TemplateBinding Background}" 
-                                CornerRadius="6" Padding="{TemplateBinding Padding}">
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="tabBorder" Background="Transparent" CornerRadius="8" Padding="{TemplateBinding Padding}" Margin="0,0,8,0">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#F5C2E7"/>
+                                <Setter TargetName="tabBorder" Property="Background" Value="{StaticResource BrushBgHover}"/>
+                                <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
                             </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#EBA0AC"/>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="tabBorder" Property="Background" Value="{StaticResource BrushBgCardElevated}"/>
+                                <Setter Property="Foreground" Value="{StaticResource BrushPrimaryAccent}"/>
                             </Trigger>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="border" Property="Opacity" Value="0.5"/>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Source Card RadioButton Style -->
+        <Style x:Key="SourceCardStyle" TargetType="RadioButton">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="0,0,12,12"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="cardBorder" Background="{StaticResource BrushBgCard}" 
+                                BorderBrush="{StaticResource BrushBorderDefault}" 
+                                BorderThickness="1.5" CornerRadius="10" Padding="14,12" Width="260">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="cardBorder" Property="Background" Value="{StaticResource BrushBgHover}"/>
+                                <Setter TargetName="cardBorder" Property="BorderBrush" Value="{StaticResource BrushSecondaryAccent}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="cardBorder" Property="Background" Value="{StaticResource BrushBgCardElevated}"/>
+                                <Setter TargetName="cardBorder" Property="BorderBrush" Value="{StaticResource BrushPrimaryAccent}"/>
+                                <Setter TargetName="cardBorder" Property="BorderThickness" Value="2"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -167,30 +267,44 @@
         </Style>
     </Window.Resources>
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-        <Grid Margin="24">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/> <!-- Header -->
-                <RowDefinition Height="Auto"/> <!-- Monitor Mode & Scale Card -->
-                <RowDefinition Height="Auto"/> <!-- Global Source Card -->
-                <RowDefinition Height="Auto"/> <!-- Per-Monitor List Card -->
-                <RowDefinition Height="Auto"/> <!-- General Settings Card -->
-                <RowDefinition Height="Auto"/> <!-- Blacklist Management Card -->
-                <RowDefinition Height="Auto"/> <!-- Action Buttons -->
-            </Grid.RowDefinitions>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/> <!-- Top App Header -->
+            <RowDefinition Height="Auto"/> <!-- Status Toast Notification Banner -->
+            <RowDefinition Height="Auto"/> <!-- Live Wallpaper Preview Hero Bar -->
+            <RowDefinition Height="Auto"/> <!-- Navigation Segment Tabs -->
+            <RowDefinition Height="*"/>    <!-- Scrollable Tab Content Area -->
+            <RowDefinition Height="Auto"/> <!-- Sticky Bottom Action Bar -->
+        </Grid.RowDefinitions>
 
-            <!-- 1. Header with Language Selector -->
-            <Grid Grid.Row="0" Margin="0,0,0,18">
+        <!-- 1. Top App Header Bar -->
+        <Border Grid.Row="0" Background="{StaticResource BrushBgCard}" BorderBrush="{StaticResource BrushBorderSubtle}" BorderThickness="0,0,0,1" Padding="20,14">
+            <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <StackPanel>
-                    <TextBlock Text="🖼️ BackgroundSwitch" FontSize="22" FontWeight="Bold" Foreground="{StaticResource BrushPrimaryAccent}"/>
-                    <TextBlock Text="{Binding AppSubtitleText}" FontSize="13" Foreground="{StaticResource BrushTextSecondary}" Margin="0,4,0,0"/>
+
+                <!-- Brand Title & Active Provider Pip -->
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="🖼️" FontSize="22" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <StackPanel VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="BackgroundSwitch" FontSize="18" FontWeight="Bold" Foreground="{StaticResource BrushTextPrimary}"/>
+                            <Border Background="#2A2F4A" CornerRadius="4" Padding="6,2" Margin="8,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="v2.0 MVVM" FontSize="10.5" FontWeight="Bold" Foreground="{StaticResource BrushPrimaryAccent}"/>
+                            </Border>
+                            <Border Background="#1C382A" CornerRadius="12" Padding="8,2" Margin="8,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="● Pexels API Mặc Định" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource BrushSuccessAccent}"/>
+                            </Border>
+                        </StackPanel>
+                        <TextBlock Text="{Binding AppSubtitleText}" FontSize="12" Foreground="{StaticResource BrushTextSecondary}" Margin="0,2,0,0"/>
+                    </StackPanel>
                 </StackPanel>
+
+                <!-- Language Selector -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding LanguageLabelText}" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding LanguageLabelText}" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold" FontSize="12.5"/>
                     <ComboBox Width="160" SelectedValue="{Binding Language, Mode=TwoWay}" SelectedValuePath="Tag">
                         <ComboBoxItem Content="Song ngữ (Bilingual)" Tag="bilingual"/>
                         <ComboBoxItem Content="Tiếng Việt" Tag="vi"/>
@@ -198,172 +312,416 @@
                     </ComboBox>
                 </StackPanel>
             </Grid>
+        </Border>
 
-            <!-- 2. Monitor Mode & Scaling Card -->
-            <Border Grid.Row="1" Background="{StaticResource BrushBgCard}" CornerRadius="8" Padding="16" Margin="0,0,0,14" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1">
-                <StackPanel>
-                    <TextBlock Text="{Binding ModeSectionText}" FontWeight="Bold" FontSize="14" Foreground="{StaticResource BrushPrimaryAccent}" Margin="0,0,0,10"/>
-                    
-                    <Grid Margin="0,0,0,12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <RadioButton Grid.Column="0" Content="{Binding ModeSyncedText}" IsChecked="{Binding IsModeSynced, Mode=TwoWay}"/>
-                        <RadioButton Grid.Column="1" Content="{Binding ModePerMonitorText}" IsChecked="{Binding IsModePerMonitor, Mode=TwoWay}"/>
-                        <RadioButton Grid.Column="2" Content="{Binding ModeSpanText}" IsChecked="{Binding IsModeSpan, Mode=TwoWay}"/>
-                    </Grid>
-
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="130"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="{Binding ScaleLabelText}" VerticalAlignment="Center" FontWeight="SemiBold"/>
-                        <ComboBox Grid.Column="1" SelectedValue="{Binding Scale, Mode=TwoWay}" SelectedValuePath="Tag">
-                            <ComboBoxItem Content="Fill — Cắt vừa khung (Khuyên dùng)" Tag="{x:Static models:WallpaperScale.Fill}"/>
-                            <ComboBoxItem Content="Fit — Giữ nguyên tỉ lệ (Viền nền)" Tag="{x:Static models:WallpaperScale.Fit}"/>
-                            <ComboBoxItem Content="Stretch — Kéo dãn full màn hình" Tag="{x:Static models:WallpaperScale.Stretch}"/>
-                            <ComboBoxItem Content="Center — Đặt ở chính giữa" Tag="{x:Static models:WallpaperScale.Center}"/>
-                            <ComboBoxItem Content="Tile — Lặp lại dạng caro" Tag="{x:Static models:WallpaperScale.Tile}"/>
-                            <ComboBoxItem Content="Span — Trải rộng qua các màn" Tag="{x:Static models:WallpaperScale.Span}"/>
-                        </ComboBox>
-                    </Grid>
+        <!-- 2. Status Toast Notification Banner (AgentOption wpf-ui in-window notification) -->
+        <Border Grid.Row="1" Visibility="{Binding IsStatusVisible, Converter={StaticResource BoolToVis}}" 
+                Background="#1C2E24" BorderBrush="{StaticResource BrushSuccessAccent}" BorderThickness="0,0,0,1" Padding="16,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="✨" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource BrushSuccessAccent}" FontWeight="SemiBold" FontSize="13" VerticalAlignment="Center"/>
                 </StackPanel>
-            </Border>
+                <Button Content="✕" Command="{Binding DismissStatusCommand}" Grid.Column="1" 
+                        Background="Transparent" Foreground="{StaticResource BrushTextSecondary}" BorderThickness="0" 
+                        FontSize="12" Cursor="Hand" Padding="6,2"/>
+            </Grid>
+        </Border>
 
-            <!-- 3. Global Source Card -->
-            <Border Grid.Row="2" Background="{StaticResource BrushBgCard}" CornerRadius="8" Padding="16" Margin="0,0,0,14" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1">
-                <StackPanel>
-                    <TextBlock Text="{Binding SourceSectionText}" FontWeight="Bold" FontSize="14" Foreground="{StaticResource BrushPrimaryAccent}" Margin="0,0,0,10"/>
+        <!-- 3. Live Wallpaper Preview Hero Bar -->
+        <Border Grid.Row="2" Background="{StaticResource BrushBgCardElevated}" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="0,0,0,1" Padding="20,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="140"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-                    <!-- Provider Selection WrapPanel -->
-                    <WrapPanel Margin="0,0,0,10">
-                        <RadioButton Content="{Binding SourceBingText}" IsChecked="{Binding IsSourceBing, Mode=TwoWay}"/>
-                        <RadioButton Content="{Binding SourceRedditText}" IsChecked="{Binding IsSourceReddit, Mode=TwoWay}"/>
-                        <RadioButton Content="{Binding SourceWallhavenText}" IsChecked="{Binding IsSourceWallhaven, Mode=TwoWay}"/>
-                        <RadioButton Content="{Binding SourceNasaText}" IsChecked="{Binding IsSourceNasa, Mode=TwoWay}"/>
-                        <RadioButton Content="{Binding SourceLocalText}" IsChecked="{Binding IsSourceLocal, Mode=TwoWay}"/>
-                        <RadioButton Content="{Binding SourcePexelsText}" IsChecked="{Binding IsSourcePexels, Mode=TwoWay}"/>
-                        <RadioButton Content="{Binding SourceUnsplashText}" IsChecked="{Binding IsSourceUnsplash, Mode=TwoWay}"/>
+                <!-- Thumbnail Preview -->
+                <Border Grid.Column="0" Height="80" Width="130" CornerRadius="8" Background="#11131F" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1" ClipToBounds="True">
+                    <Grid>
+                        <Image Source="{Binding CurrentWallpaperPath, Converter={StaticResource ImagePathToBitmap}}" Stretch="UniformToFill"/>
+                        <TextBlock Text="📷 Xem trước" FontSize="11" Foreground="{StaticResource BrushTextMuted}" 
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   Visibility="{Binding HasCurrentWallpaper, Converter={StaticResource InverseBoolToVis}}"/>
+                    </Grid>
+                </Border>
+
+                <!-- Wallpaper Metadata Info -->
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="16,0,0,0">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="ĐANG HOẠT ĐỘNG:" FontSize="10.5" FontWeight="Bold" Foreground="{StaticResource BrushPrimaryAccent}" Margin="0,0,6,0"/>
+                        <TextBlock Text="{Binding CurrentWallpaperFileName}" FontWeight="Bold" FontSize="13" TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+                    <TextBlock Text="{Binding CurrentWallpaperDetails}" FontSize="12" Foreground="{StaticResource BrushTextSecondary}" Margin="0,4,0,0"/>
+                    <TextBlock Text="{Binding ProviderDescription}" FontSize="11.5" Foreground="{StaticResource BrushSuccessAccent}" TextTrimming="CharacterEllipsis" Margin="0,3,0,0"/>
+                </StackPanel>
+
+                <!-- Live Preview Quick Action Pills -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="💾 Lưu ảnh" Command="{Binding SaveCurrentPictureAsCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0"/>
+                    <Button Content="🔍 Xem file" Command="{Binding OpenCurrentInExplorerCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0"/>
+                    <Button Content="🚫 Chặn ảnh này" Command="{Binding BlacklistCurrentWallpaperCommand}" Style="{StaticResource DangerButton}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- 4. Navigation Segment Tabs -->
+        <Border Grid.Row="3" Background="{StaticResource BrushBgDark}" Padding="20,12,20,6">
+            <StackPanel Orientation="Horizontal">
+                <RadioButton Content="🌐 Nguồn Hình Nền" Style="{StaticResource NavTabStyle}" IsChecked="{Binding IsTabSources, Mode=OneWay}" Command="{Binding SelectTabCommand}" CommandParameter="0"/>
+                <RadioButton Content="🖥️ Màn Hình &amp; Bố Cục" Style="{StaticResource NavTabStyle}" IsChecked="{Binding IsTabDisplays, Mode=OneWay}" Command="{Binding SelectTabCommand}" CommandParameter="1"/>
+                <RadioButton Content="⚙️ Lịch Trình &amp; Cài Đặt" Style="{StaticResource NavTabStyle}" IsChecked="{Binding IsTabSettings, Mode=OneWay}" Command="{Binding SelectTabCommand}" CommandParameter="2"/>
+            </StackPanel>
+        </Border>
+
+        <!-- 5. Scrollable Tab Content Area -->
+        <ScrollViewer Grid.Row="4" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="20,10">
+            <Grid>
+                <!-- ==================== TAB 0: WALLPAPER SOURCES ==================== -->
+                <StackPanel Visibility="{Binding IsTabSources, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="CHỌN NGUỒN CUNG CẤP HÌNH NỀN" FontSize="12" FontWeight="Bold" Foreground="{StaticResource BrushTextMuted}" Margin="0,0,0,12"/>
+
+                    <!-- Visual Grid of Source Cards -->
+                    <WrapPanel Margin="0,0,0,16">
+                        <!-- Pexels Card (Default & Recommended) -->
+                        <RadioButton Style="{StaticResource SourceCardStyle}" IsChecked="{Binding IsSourcePexels, Mode=TwoWay}">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,4">
+                                    <TextBlock Text="📷 Pexels API" FontWeight="Bold" FontSize="14" Foreground="{StaticResource BrushPrimaryAccent}"/>
+                                    <Border Background="#1C382A" CornerRadius="4" Padding="6,2" HorizontalAlignment="Right">
+                                        <TextBlock Text="Ultra HD 4K" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushSuccessAccent}"/>
+                                    </Border>
+                                </Grid>
+                                <TextBlock Text="Kho ảnh nhiếp ảnh gia toàn cầu theo từ khóa (Đã sẵn key)." FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </RadioButton>
+
+                        <!-- Bing Daily Card -->
+                        <RadioButton Style="{StaticResource SourceCardStyle}" IsChecked="{Binding IsSourceBing, Mode=TwoWay}">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,4">
+                                    <TextBlock Text="🌅 Bing Daily 4K" FontWeight="Bold" FontSize="14"/>
+                                    <Border Background="#252A42" CornerRadius="4" Padding="6,2" HorizontalAlignment="Right">
+                                        <TextBlock Text="Mỗi ngày 1 ảnh" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushPrimaryAccent}"/>
+                                    </Border>
+                                </Grid>
+                                <TextBlock Text="Hình nền Ultra HD chính thức mỗi ngày của Microsoft Bing." FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </RadioButton>
+
+                        <!-- Wallhaven Card -->
+                        <RadioButton Style="{StaticResource SourceCardStyle}" IsChecked="{Binding IsSourceWallhaven, Mode=TwoWay}">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,4">
+                                    <TextBlock Text="🎨 Wallhaven" FontWeight="Bold" FontSize="14"/>
+                                    <Border Background="#252A42" CornerRadius="4" Padding="6,2" HorizontalAlignment="Right">
+                                        <TextBlock Text="4K / 8K Art" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushSecondaryAccent}"/>
+                                    </Border>
+                                </Grid>
+                                <TextBlock Text="Kho hình nền nghệ thuật, anime và cyberpunk chất lượng đỉnh cao." FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </RadioButton>
+
+                        <!-- NASA APOD Card -->
+                        <RadioButton Style="{StaticResource SourceCardStyle}" IsChecked="{Binding IsSourceNasa, Mode=TwoWay}">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,4">
+                                    <TextBlock Text="🚀 NASA APOD" FontWeight="Bold" FontSize="14"/>
+                                    <Border Background="#252A42" CornerRadius="4" Padding="6,2" HorizontalAlignment="Right">
+                                        <TextBlock Text="Vũ Trụ" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushWarningAccent}"/>
+                                    </Border>
+                                </Grid>
+                                <TextBlock Text="Ảnh thiên văn kỳ vĩ từ kính viễn vọng không gian James Webb &amp; Hubble." FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </RadioButton>
+
+                        <!-- Unsplash Card -->
+                        <RadioButton Style="{StaticResource SourceCardStyle}" IsChecked="{Binding IsSourceUnsplash, Mode=TwoWay}">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,4">
+                                    <TextBlock Text="🌄 Unsplash Photos" FontWeight="Bold" FontSize="14"/>
+                                    <Border Background="#252A42" CornerRadius="4" Padding="6,2" HorizontalAlignment="Right">
+                                        <TextBlock Text="Nghệ Thuật" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushPrimaryAccent}"/>
+                                    </Border>
+                                </Grid>
+                                <TextBlock Text="Nhiếp ảnh phong cảnh &amp; tự nhiên từ các nhiếp ảnh gia hàng đầu thế giới." FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </RadioButton>
+
+                        <!-- Reddit Card -->
+                        <RadioButton Style="{StaticResource SourceCardStyle}" IsChecked="{Binding IsSourceReddit, Mode=TwoWay}">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,4">
+                                    <TextBlock Text="🤖 Reddit Wallpapers" FontWeight="Bold" FontSize="14"/>
+                                    <Border Background="#252A42" CornerRadius="4" Padding="6,2" HorizontalAlignment="Right">
+                                        <TextBlock Text="Cộng Đồng" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}"/>
+                                    </Border>
+                                </Grid>
+                                <TextBlock Text="Tự động lấy ảnh độ phân giải cao từ các cộng đồng r/wallpapers, EarthPorn." FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </RadioButton>
+
+                        <!-- Local Folder Card -->
+                        <RadioButton Style="{StaticResource SourceCardStyle}" IsChecked="{Binding IsSourceLocal, Mode=TwoWay}">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,4">
+                                    <TextBlock Text="📁 Thư Mục Local" FontWeight="Bold" FontSize="14"/>
+                                    <Border Background="#252A42" CornerRadius="4" Padding="6,2" HorizontalAlignment="Right">
+                                        <TextBlock Text="Offline" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextMuted}"/>
+                                    </Border>
+                                </Grid>
+                                <TextBlock Text="Quét và đổi ngẫu nhiên ảnh trong thư mục ảnh trên máy tính của bạn." FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </RadioButton>
                     </WrapPanel>
 
-                    <!-- Reddit Config -->
-                    <StackPanel Visibility="{Binding IsRedditPanelVisible, Converter={StaticResource BoolToVis}}" Margin="0,0,0,8">
-                        <TextBlock Text="{Binding RedditSubLabelText}" Margin="0,0,0,4"/>
-                        <TextBox Text="{Binding RedditSubreddit, UpdateSourceTrigger=PropertyChanged}"/>
-                    </StackPanel>
+                    <!-- Dedicated Configuration Panel for the Selected Source -->
+                    <Border Background="{StaticResource BrushBgCard}" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1" CornerRadius="10" Padding="18" Margin="0,0,0,16">
+                        <StackPanel>
+                            <!-- PEXELS CONFIG PANEL -->
+                            <StackPanel Visibility="{Binding IsPexelsPanelVisible, Converter={StaticResource BoolToVis}}">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                    <TextBlock Text="⚙️ CẤU HÌNH PEXELS API" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushPrimaryAccent}"/>
+                                    <Border Background="#1C382A" CornerRadius="4" Padding="6,2" Margin="8,0,0,0">
+                                        <TextBlock Text="🟢 Key hợp lệ" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushSuccessAccent}"/>
+                                    </Border>
+                                </StackPanel>
 
-                    <!-- Wallhaven Config -->
-                    <StackPanel Visibility="{Binding IsWallhavenPanelVisible, Converter={StaticResource BoolToVis}}" Margin="0,0,0,8">
-                        <TextBlock Text="{Binding WallhavenQueryLabelText}" Margin="0,0,0,4"/>
-                        <TextBox Text="{Binding WallhavenQuery, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
-                        
-                        <TextBlock Text="{Binding WallhavenApiKeyLabelText}" Margin="0,0,0,4"/>
-                        <TextBox Text="{Binding WallhavenApiKey, UpdateSourceTrigger=PropertyChanged}"/>
-                    </StackPanel>
+                                <TextBlock Text="{Binding PexelsQueryLabelText}" FontSize="12.5" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                                <TextBox Text="{Binding PexelsQuery, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
 
-                    <!-- Local Config -->
-                    <StackPanel Visibility="{Binding IsLocalPanelVisible, Converter={StaticResource BoolToVis}}" Margin="0,0,0,8">
-                        <TextBlock Text="{Binding LocalFolderPathLabelText}" Margin="0,0,0,4"/>
+                                <!-- Quick Suggestion Chips for Pexels -->
+                                <TextBlock Text="GỢI Ý TỪ KHÓA NHANH (Bấm để áp dụng):" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushTextMuted}" Margin="0,0,0,6"/>
+                                <WrapPanel Margin="0,0,0,12">
+                                    <Button Content="🌿 Thiên nhiên (nature)" Style="{StaticResource ChipButton}" Command="{Binding SelectPexelsTagCommand}" CommandParameter="nature"/>
+                                    <Button Content="🏙️ Đô thị (city)" Style="{StaticResource ChipButton}" Command="{Binding SelectPexelsTagCommand}" CommandParameter="city"/>
+                                    <Button Content="🚀 Vũ trụ (space)" Style="{StaticResource ChipButton}" Command="{Binding SelectPexelsTagCommand}" CommandParameter="space"/>
+                                    <Button Content="🌊 Biển (ocean)" Style="{StaticResource ChipButton}" Command="{Binding SelectPexelsTagCommand}" CommandParameter="ocean"/>
+                                    <Button Content="🍜 Ẩm thực (food)" Style="{StaticResource ChipButton}" Command="{Binding SelectPexelsTagCommand}" CommandParameter="food"/>
+                                    <Button Content="🏎️ Siêu xe (supercar)" Style="{StaticResource ChipButton}" Command="{Binding SelectPexelsTagCommand}" CommandParameter="supercar"/>
+                                    <Button Content="⚡ Cyberpunk" Style="{StaticResource ChipButton}" Command="{Binding SelectPexelsTagCommand}" CommandParameter="cyberpunk"/>
+                                    <Button Content="🎨 Tối giản (minimalist)" Style="{StaticResource ChipButton}" Command="{Binding SelectPexelsTagCommand}" CommandParameter="minimalist"/>
+                                    <Button Content="🌸 Anime" Style="{StaticResource ChipButton}" Command="{Binding SelectPexelsTagCommand}" CommandParameter="anime"/>
+                                    <Button Content="🏔️ Núi rừng (mountains)" Style="{StaticResource ChipButton}" Command="{Binding SelectPexelsTagCommand}" CommandParameter="mountains"/>
+                                </WrapPanel>
+
+                                <TextBlock Text="{Binding PexelsApiKeyLabelText}" FontSize="12.5" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                                <TextBox Text="{Binding PexelsApiKey, UpdateSourceTrigger=PropertyChanged}"/>
+                                <TextBlock Text="💡 API Key này đã được lưu sẵn trong ứng dụng. Bạn có thể để trống hoặc thay đổi bất kỳ lúc nào." 
+                                           FontSize="11.5" Foreground="{StaticResource BrushTextMuted}" Margin="0,4,0,0"/>
+                            </StackPanel>
+
+                            <!-- WALLHAVEN CONFIG PANEL -->
+                            <StackPanel Visibility="{Binding IsWallhavenPanelVisible, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="⚙️ CẤU HÌNH WALLHAVEN 4K/8K" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushPrimaryAccent}" Margin="0,0,0,12"/>
+                                <TextBlock Text="{Binding WallhavenQueryLabelText}" FontSize="12.5" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                                <TextBox Text="{Binding WallhavenQuery, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+
+                                <!-- Quick Chips for Wallhaven -->
+                                <WrapPanel Margin="0,0,0,12">
+                                    <Button Content="nature" Style="{StaticResource ChipButton}" Command="{Binding SelectWallhavenTagCommand}" CommandParameter="nature"/>
+                                    <Button Content="anime" Style="{StaticResource ChipButton}" Command="{Binding SelectWallhavenTagCommand}" CommandParameter="anime"/>
+                                    <Button Content="cyberpunk" Style="{StaticResource ChipButton}" Command="{Binding SelectWallhavenTagCommand}" CommandParameter="cyberpunk"/>
+                                    <Button Content="landscape" Style="{StaticResource ChipButton}" Command="{Binding SelectWallhavenTagCommand}" CommandParameter="landscape"/>
+                                    <Button Content="fantasy" Style="{StaticResource ChipButton}" Command="{Binding SelectWallhavenTagCommand}" CommandParameter="fantasy"/>
+                                </WrapPanel>
+
+                                <TextBlock Text="{Binding WallhavenApiKeyLabelText}" FontSize="12.5" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                                <TextBox Text="{Binding WallhavenApiKey, UpdateSourceTrigger=PropertyChanged}"/>
+                            </StackPanel>
+
+                            <!-- REDDIT CONFIG PANEL -->
+                            <StackPanel Visibility="{Binding IsRedditPanelVisible, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="⚙️ CẤU HÌNH REDDIT WALLPAPERS" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushPrimaryAccent}" Margin="0,0,0,12"/>
+                                <TextBlock Text="{Binding RedditSubLabelText}" FontSize="12.5" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                                <TextBox Text="{Binding RedditSubreddit, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+
+                                <!-- Quick Chips for Reddit -->
+                                <WrapPanel>
+                                    <Button Content="r/wallpapers" Style="{StaticResource ChipButton}" Command="{Binding SelectRedditTagCommand}" CommandParameter="wallpapers"/>
+                                    <Button Content="r/EarthPorn" Style="{StaticResource ChipButton}" Command="{Binding SelectRedditTagCommand}" CommandParameter="EarthPorn"/>
+                                    <Button Content="r/spaceporn" Style="{StaticResource ChipButton}" Command="{Binding SelectRedditTagCommand}" CommandParameter="spaceporn"/>
+                                    <Button Content="r/AnimeWallpaper" Style="{StaticResource ChipButton}" Command="{Binding SelectRedditTagCommand}" CommandParameter="AnimeWallpaper"/>
+                                    <Button Content="r/Cyberpunk" Style="{StaticResource ChipButton}" Command="{Binding SelectRedditTagCommand}" CommandParameter="Cyberpunk"/>
+                                </WrapPanel>
+                            </StackPanel>
+
+                            <!-- LOCAL FOLDER CONFIG PANEL -->
+                            <StackPanel Visibility="{Binding IsLocalPanelVisible, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="⚙️ CẤU HÌNH THƯ MỤC ẢNH CỤC BỘ" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushPrimaryAccent}" Margin="0,0,0,12"/>
+                                <TextBlock Text="{Binding LocalFolderPathLabelText}" FontSize="12.5" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Text="{Binding LocalFolderPath, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <Button Content="{Binding BrowseBtnText}" Command="{Binding BrowseFolderCommand}" Style="{StaticResource SecondaryButton}" Grid.Column="1" Margin="10,0,0,0"/>
+                                </Grid>
+                            </StackPanel>
+
+                            <!-- UNSPLASH CONFIG PANEL -->
+                            <StackPanel Visibility="{Binding IsUnsplashPanelVisible, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="⚙️ CẤU HÌNH UNSPLASH PHOTOS" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushPrimaryAccent}" Margin="0,0,0,12"/>
+                                <TextBlock Text="{Binding UnsplashQueryLabelText}" FontSize="12.5" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                                <TextBox Text="{Binding UnsplashQuery, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+                                <TextBlock Text="{Binding UnsplashApiKeyLabelText}" FontSize="12.5" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                                <TextBox Text="{Binding UnsplashApiKey, UpdateSourceTrigger=PropertyChanged}"/>
+                            </StackPanel>
+
+                            <!-- BING DAILY & NASA APOD (No config required info) -->
+                            <StackPanel Visibility="{Binding IsSourceBing, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="✨ Nguồn Bing Daily tự động đồng bộ ảnh 4K mỗi ngày từ Microsoft. Không cần cấu hình thêm." FontSize="13" Foreground="{StaticResource BrushSuccessAccent}"/>
+                            </StackPanel>
+                            <StackPanel Visibility="{Binding IsSourceNasa, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="✨ Nguồn NASA APOD tự động lấy ảnh thiên văn hàng ngày từ kính James Webb &amp; Hubble qua NASA Open API." FontSize="13" Foreground="{StaticResource BrushSuccessAccent}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- ==================== TAB 1: DISPLAYS & LAYOUT ==================== -->
+                <StackPanel Visibility="{Binding IsTabDisplays, Converter={StaticResource BoolToVis}}">
+                    <!-- Display Mode Card -->
+                    <Border Background="{StaticResource BrushBgCard}" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1" CornerRadius="10" Padding="18" Margin="0,0,0,16">
+                        <StackPanel>
+                            <TextBlock Text="{Binding ModeSectionText}" FontWeight="Bold" FontSize="14" Foreground="{StaticResource BrushPrimaryAccent}" Margin="0,0,0,12"/>
+                            
+                            <Grid Margin="0,0,0,16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <RadioButton Grid.Column="0" Content="{Binding ModeSyncedText}" IsChecked="{Binding IsModeSynced, Mode=TwoWay}" FontSize="13"/>
+                                <RadioButton Grid.Column="1" Content="{Binding ModePerMonitorText}" IsChecked="{Binding IsModePerMonitor, Mode=TwoWay}" FontSize="13"/>
+                                <RadioButton Grid.Column="2" Content="{Binding ModeSpanText}" IsChecked="{Binding IsModeSpan, Mode=TwoWay}" FontSize="13"/>
+                            </Grid>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="150"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{Binding ScaleLabelText}" VerticalAlignment="Center" FontWeight="SemiBold" FontSize="13"/>
+                                <ComboBox Grid.Column="1" SelectedValue="{Binding Scale, Mode=TwoWay}" SelectedValuePath="Tag">
+                                    <ComboBoxItem Content="Fill — Cắt vừa khung màn hình (Khuyên dùng)" Tag="{x:Static models:WallpaperScale.Fill}"/>
+                                    <ComboBoxItem Content="Fit — Giữ nguyên tỉ lệ ảnh (Viền nền)" Tag="{x:Static models:WallpaperScale.Fit}"/>
+                                    <ComboBoxItem Content="Stretch — Kéo dãn full khung" Tag="{x:Static models:WallpaperScale.Stretch}"/>
+                                    <ComboBoxItem Content="Center — Đặt ở chính giữa" Tag="{x:Static models:WallpaperScale.Center}"/>
+                                    <ComboBoxItem Content="Tile — Lặp lại dạng ô cờ" Tag="{x:Static models:WallpaperScale.Tile}"/>
+                                    <ComboBoxItem Content="Span — Trải rộng qua các màn hình" Tag="{x:Static models:WallpaperScale.Span}"/>
+                                </ComboBox>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Connected Monitors List -->
+                    <Border Background="{StaticResource BrushBgCard}" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1" CornerRadius="10" Padding="18">
+                        <StackPanel>
+                            <TextBlock Text="🖥️ DANH SÁCH MÀN HÌNH ĐÃ PHÁT HIỆN" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushPrimaryAccent}" Margin="0,0,0,12"/>
+                            <ItemsControl ItemsSource="{Binding Monitors}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="{StaticResource BrushBgCardElevated}" CornerRadius="8" Padding="14,10" Margin="0,0,0,8" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding FriendlyName}" FontWeight="Bold" Foreground="{StaticResource BrushTextPrimary}" FontSize="13"/>
+                                                    <TextBlock Text="{Binding DeviceName}" Foreground="{StaticResource BrushTextSecondary}" FontSize="11.5" Margin="0,2,0,0"/>
+                                                </StackPanel>
+                                                <Border Grid.Column="1" Background="#1C382A" CornerRadius="4" Padding="8,3" VerticalAlignment="Center">
+                                                    <TextBlock Text="Đang kết nối" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource BrushSuccessAccent}"/>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- ==================== TAB 2: SCHEDULE & SETTINGS ==================== -->
+                <StackPanel Visibility="{Binding IsTabSettings, Converter={StaticResource BoolToVis}}">
+                    <!-- Schedule Interval Card -->
+                    <Border Background="{StaticResource BrushBgCard}" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1" CornerRadius="10" Padding="18" Margin="0,0,0,16">
+                        <StackPanel>
+                            <TextBlock Text="⏱️ TẦN SUẤT ĐỔI HÌNH NỀN TỰ ĐỘNG" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushPrimaryAccent}" Margin="0,0,0,12"/>
+                            
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="180"/>
+                                    <ColumnDefinition Width="90"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{Binding IntervalLabelText}" VerticalAlignment="Center" FontSize="13"/>
+                                <TextBox Text="{Binding IntervalMinutes, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" HorizontalContentAlignment="Center" FontSize="14" FontWeight="Bold"/>
+                                <TextBlock Text="{Binding MinutesUnitText}" Grid.Column="2" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{StaticResource BrushTextSecondary}"/>
+                            </Grid>
+
+                            <!-- Quick Preset Pills for Interval -->
+                            <TextBlock Text="CHỌN NHANH TẦN SUẤT:" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushTextMuted}" Margin="0,0,0,6"/>
+                            <WrapPanel Margin="0,0,0,12">
+                                <Button Content="15 phút" Style="{StaticResource ChipButton}" Command="{Binding SelectIntervalPresetCommand}" CommandParameter="15"/>
+                                <Button Content="30 phút" Style="{StaticResource ChipButton}" Command="{Binding SelectIntervalPresetCommand}" CommandParameter="30"/>
+                                <Button Content="1 giờ (60p)" Style="{StaticResource ChipButton}" Command="{Binding SelectIntervalPresetCommand}" CommandParameter="60"/>
+                                <Button Content="2 giờ (120p)" Style="{StaticResource ChipButton}" Command="{Binding SelectIntervalPresetCommand}" CommandParameter="120"/>
+                                <Button Content="4 giờ (240p)" Style="{StaticResource ChipButton}" Command="{Binding SelectIntervalPresetCommand}" CommandParameter="240"/>
+                                <Button Content="24 giờ (1 ngày)" Style="{StaticResource ChipButton}" Command="{Binding SelectIntervalPresetCommand}" CommandParameter="1440"/>
+                            </WrapPanel>
+
+                            <CheckBox Content="{Binding AutoStartText}" IsChecked="{Binding AutoStart, Mode=TwoWay}" FontSize="13"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Blacklist Management Card -->
+                    <Border Background="{StaticResource BrushBgCard}" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1" CornerRadius="10" Padding="18">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBox Text="{Binding LocalFolderPath, UpdateSourceTrigger=PropertyChanged}"/>
-                            <Button Content="{Binding BrowseBtnText}" Command="{Binding BrowseFolderCommand}" Grid.Column="1" Width="80" Margin="8,0,0,0"/>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="🚫 DANH SÁCH CHẶN (BLACKLIST)" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushDangerAccent}"/>
+                                <TextBlock Text="{Binding BlacklistCountText}" FontSize="12.5" Foreground="{StaticResource BrushTextSecondary}" Margin="0,3,0,0"/>
+                                <TextBlock Text="Những ảnh bị chặn sẽ không bao giờ xuất hiện lại trên màn hình của bạn." FontSize="11.5" Foreground="{StaticResource BrushTextMuted}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <Button Content="{Binding ClearBlacklistBtnText}" Command="{Binding ClearBlacklistCommand}" Style="{StaticResource DangerButton}" Grid.Column="1" Width="180"/>
                         </Grid>
-                    </StackPanel>
-
-                    <!-- Pexels Config (Default API key set) -->
-                    <StackPanel Visibility="{Binding IsPexelsPanelVisible, Converter={StaticResource BoolToVis}}" Margin="0,0,0,8">
-                        <TextBlock Text="{Binding PexelsApiKeyLabelText}" Margin="0,0,0,4"/>
-                        <TextBox Text="{Binding PexelsApiKey, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
-                        
-                        <TextBlock Text="{Binding PexelsQueryLabelText}" Margin="0,0,0,4"/>
-                        <TextBox Text="{Binding PexelsQuery, UpdateSourceTrigger=PropertyChanged}"/>
-                    </StackPanel>
-
-                    <!-- Unsplash Config -->
-                    <StackPanel Visibility="{Binding IsUnsplashPanelVisible, Converter={StaticResource BoolToVis}}" Margin="0,0,0,8">
-                        <TextBlock Text="{Binding UnsplashQueryLabelText}" Margin="0,0,0,4"/>
-                        <TextBox Text="{Binding UnsplashQuery, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
-
-                        <TextBlock Text="{Binding UnsplashApiKeyLabelText}" Margin="0,0,0,4"/>
-                        <TextBox Text="{Binding UnsplashApiKey, UpdateSourceTrigger=PropertyChanged}"/>
-                    </StackPanel>
-
-                    <!-- Provider Info Notes -->
-                    <TextBlock Text="{Binding ProviderDescription}" 
-                               Foreground="{StaticResource BrushSuccessAccent}" FontSize="12.5" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                    </Border>
                 </StackPanel>
-            </Border>
+            </Grid>
+        </ScrollViewer>
 
-            <!-- 4. Per-Monitor Config Card -->
-            <Border Visibility="{Binding IsPerMonitorVisible, Converter={StaticResource BoolToVis}}" Grid.Row="3" Background="{StaticResource BrushBgCard}" CornerRadius="8" Padding="16" Margin="0,0,0,14" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1">
-                <StackPanel>
-                    <TextBlock Text="{Binding PerMonitorSectionText}" FontWeight="Bold" FontSize="14" Foreground="{StaticResource BrushPrimaryAccent}" Margin="0,0,0,10"/>
-                    <ItemsControl ItemsSource="{Binding Monitors}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border Background="{StaticResource BrushBgDark}" CornerRadius="6" Padding="12" Margin="0,0,0,8" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1">
-                                    <Grid>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
-                                        </Grid.RowDefinitions>
-                                        <TextBlock Text="{Binding FriendlyName}" FontWeight="Bold" Foreground="{StaticResource BrushTextPrimary}" FontSize="13"/>
-                                        <TextBlock Grid.Row="1" Text="{Binding DeviceName}" Foreground="{StaticResource BrushTextSecondary}" FontSize="11" Margin="0,2,0,0"/>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+        <!-- 6. Sticky Bottom Action Bar -->
+        <Border Grid.Row="5" Background="{StaticResource BrushBgCard}" BorderBrush="{StaticResource BrushBorderSubtle}" BorderThickness="0,1,0,0" Padding="20,14">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Status readout on bottom-left -->
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="⚡ BackgroundSwitch đang hoạt động ngầm trên System Tray" FontSize="12" Foreground="{StaticResource BrushSuccessAccent}"/>
+                    <TextBlock Text="Bấm đúp icon khay hệ thống hoặc chuột phải để thao tác nhanh" FontSize="11" Foreground="{StaticResource BrushTextMuted}"/>
                 </StackPanel>
-            </Border>
 
-            <!-- 5. General Settings Card -->
-            <Border Grid.Row="4" Background="{StaticResource BrushBgCard}" CornerRadius="8" Padding="16" Margin="0,0,0,14" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1">
-                <StackPanel>
-                    <TextBlock Text="{Binding GeneralSectionText}" FontWeight="Bold" FontSize="14" Foreground="{StaticResource BrushPrimaryAccent}" Margin="0,0,0,10"/>
-
-                    <Grid Margin="0,0,0,10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="170"/>
-                            <ColumnDefinition Width="80"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="{Binding IntervalLabelText}" VerticalAlignment="Center"/>
-                        <TextBox Text="{Binding IntervalMinutes, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" HorizontalContentAlignment="Center"/>
-                        <TextBlock Text="{Binding MinutesUnitText}" Grid.Column="2" VerticalAlignment="Center" Margin="8,0,0,0" Foreground="{StaticResource BrushTextSecondary}"/>
-                    </Grid>
-
-                    <CheckBox Content="{Binding AutoStartText}" IsChecked="{Binding AutoStart, Mode=TwoWay}"/>
+                <!-- Main Action Buttons on bottom-right -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="{Binding ChangeNowButtonText}" Command="{Binding ChangeNowCommand}" Style="{StaticResource SecondaryButton}" Width="190" Margin="0,0,12,0"/>
+                    <Button Content="{Binding SaveBtnText}" Command="{Binding SaveCommand}" Style="{StaticResource AccentButton}" Width="160"/>
                 </StackPanel>
-            </Border>
-
-            <!-- 6. Blacklist Management Card -->
-            <Border Grid.Row="5" Background="{StaticResource BrushBgCard}" CornerRadius="8" Padding="16" Margin="0,0,0,18" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="🚫 Blacklist" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushDangerAccent}"/>
-                        <TextBlock Text="{Binding BlacklistCountText}" FontSize="12" Foreground="{StaticResource BrushTextSecondary}" Margin="0,2,0,0"/>
-                    </StackPanel>
-                    <Button Content="{Binding ClearBlacklistBtnText}" Command="{Binding ClearBlacklistCommand}" Grid.Column="1" Width="160" Style="{StaticResource DangerButton}"/>
-                </Grid>
-            </Border>
-
-            <!-- 7. Action Buttons -->
-            <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="{Binding ChangeNowButtonText}" Command="{Binding ChangeNowCommand}" Width="190" Margin="0,0,12,0"/>
-                <Button Content="{Binding SaveBtnText}" Command="{Binding SaveCommand}" Width="160" Style="{StaticResource AccentButton}"/>
-            </StackPanel>
-        </Grid>
-    </ScrollViewer>
+            </Grid>
+        </Border>
+    </Grid>
 </Window>

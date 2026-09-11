@@ -25,7 +25,7 @@ public class ProviderConfig
 {
     public const string DefaultPexelsApiKey = "3zV2AOzguJiTCbhfkJ23RX9OKmVTECdaHr4K25jL184ojUFwz4KrOJA2";
 
-    public string Type { get; set; } = "BingDaily"; // "BingDaily", "Reddit", "Wallhaven", "Nasa", "Local", "Pexels", "Unsplash"
+    public string Type { get; set; } = "Pexels"; // "Pexels", "BingDaily", "Reddit", "Wallhaven", "Nasa", "Local", "Unsplash"
     public string LocalFolderPath { get; set; } = string.Empty;
     public string PexelsApiKey { get; set; } = DefaultPexelsApiKey;
     public string PexelsQuery { get; set; } = "nature";
@@ -106,6 +106,16 @@ public class AppSettings
                     if (string.IsNullOrWhiteSpace(settings.GlobalSource.PexelsApiKey))
                     {
                         settings.GlobalSource.PexelsApiKey = ProviderConfig.DefaultPexelsApiKey;
+                    }
+                    if (settings.Monitors != null)
+                    {
+                        foreach (var mon in settings.Monitors)
+                        {
+                            if (mon.Source != null && string.IsNullOrWhiteSpace(mon.Source.PexelsApiKey))
+                            {
+                                mon.Source.PexelsApiKey = ProviderConfig.DefaultPexelsApiKey;
+                            }
+                        }
                     }
                     return settings;
                 }
