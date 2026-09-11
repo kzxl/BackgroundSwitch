@@ -5,14 +5,9 @@ using BackgroundSwitch.Services;
 
 namespace BackgroundSwitch.Providers;
 
-public class BingDailyImageProvider : IImageProvider
+public class BingDailyImageProvider : BaseHttpImageProvider
 {
-    private static readonly HttpClient SharedHttpClient = new()
-    {
-        Timeout = TimeSpan.FromSeconds(30)
-    };
-
-    public async Task<string?> GetNextImagePathAsync(CancellationToken cancellationToken = default)
+    public override async Task<string?> GetNextImagePathAsync(CancellationToken cancellationToken = default)
     {
         try
         {
@@ -83,34 +78,5 @@ public class BingDailyImageProvider : IImageProvider
         }
 
         return null;
-    }
-
-    private static async Task<string?> DownloadStreamToDiskAsync(string url, string targetPath, CancellationToken cancellationToken)
-    {
-        try
-        {
-            using var response = await SharedHttpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-            if (!response.IsSuccessStatusCode) return null;
-
-            var tempDownloadingFile = $"{targetPath}.tmp";
-            await using (var httpStream = await response.Content.ReadAsStreamAsync(cancellationToken))
-            await using (var fileStream = new FileStream(tempDownloadingFile, FileMode.Create, FileAccess.Write, FileShare.None, 81920, true))
-            {
-                await httpStream.CopyToAsync(fileStream, cancellationToken);
-            }
-
-            if (File.Exists(targetPath))
-            {
-                try { File.Delete(targetPath); } catch { }
-            }
-
-            File.Move(tempDownloadingFile, targetPath);
-            return targetPath;
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"[BingDailyImageProvider] Download error: {ex.Message}");
-            return null;
-        }
     }
 }

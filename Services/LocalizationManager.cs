@@ -59,6 +59,8 @@ public static class LocalizationManager
         { "UI_UnsplashQuery", ("Search Keyword:", "Từ khóa tìm kiếm:") },
         { "UI_UnsplashApiKey", ("Unsplash Access Key (Optional):", "Unsplash Access Key (Tùy chọn):") },
 
+        { "UI_LocalDesc", ("📁 Scan and set wallpapers directly from your local computer folder.", "📁 Quét và đặt hình nền trực tiếp từ thư mục trên máy tính của bạn.") },
+        { "UI_PexelsDesc", ("📷 High-resolution photography from Pexels API by keywords (Default API key configured).", "📷 Tự động tải ảnh chất lượng cao từ Pexels API theo từ khóa (Đã cài sẵn API key mặc định).") },
         { "UI_BingDesc", ("✨ Automatically downloads Microsoft Bing's Ultra HD wallpaper every day. No API key required.", "✨ Tự động tải hình ảnh Ultra HD chất lượng cao mỗi ngày của Microsoft Bing. Không cần API key.") },
         { "UI_RedditDesc", ("✨ Fetches high-resolution wallpapers from Reddit communities. No API key required.", "✨ Tự động lấy ảnh độ phân giải cao từ cộng đồng Reddit. Không cần API key.") },
         { "UI_WallhavenDesc", ("✨ World's largest 2K/4K/8K desktop wallpaper collection by tags & categories.", "✨ Kho hình nền 2K/4K/8K từ Wallhaven theo từ khóa và chủ đề.") },

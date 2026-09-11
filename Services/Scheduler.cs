@@ -22,9 +22,12 @@ public class Scheduler : IDisposable
     public event Action? OnWallpaperChanged;
     public event Action<bool>? OnPauseStateChanged;
 
-    public Scheduler(AppSettings settings)
+    private readonly IImageProviderFactory _providerFactory;
+
+    public Scheduler(AppSettings settings, IImageProviderFactory? providerFactory = null)
     {
         _settings = settings ?? throw new ArgumentNullException(nameof(settings));
+        _providerFactory = providerFactory ?? ImageProviderFactory.Instance;
     }
 
     public void UpdateSettings(AppSettings newSettings)
@@ -54,19 +57,8 @@ public class Scheduler : IDisposable
         OnPauseStateChanged?.Invoke(IsPaused);
     }
 
-    public static IImageProvider CreateProvider(ProviderConfig config)
-    {
-        return config.Type.ToLowerInvariant() switch
-        {
-            "reddit" => new RedditImageProvider(config.RedditSubreddit),
-            "wallhaven" => new WallhavenImageProvider(config.WallhavenQuery, config.WallhavenApiKey),
-            "nasa" or "apod" => new NasaApodImageProvider(config.NasaApiKey),
-            "unsplash" => new UnsplashImageProvider(config.UnsplashApiKey, config.UnsplashQuery),
-            "bingdaily" => new BingDailyImageProvider(),
-            "pexels" => new PexelsImageProvider(config.PexelsApiKey, config.PexelsQuery),
-            _ => new LocalFolderImageProvider(config.LocalFolderPath)
-        };
-    }
+    public static IImageProvider CreateProvider(ProviderConfig config) => ImageProviderFactory.Instance.CreateProvider(config);
+    public IImageProvider ResolveProvider(ProviderConfig config) => _providerFactory.CreateProvider(config);
 
     public void Start(bool isBootDelayed = false)
     {
@@ -145,7 +137,7 @@ public class Scheduler : IDisposable
                         (!string.IsNullOrEmpty(m.DeviceName) && m.DeviceName == monitor.DeviceName)) 
                         ?? new MonitorConfig { Source = _settings.GlobalSource };
 
-                    var provider = CreateProvider(monConfig.Source);
+                    var provider = ResolveProvider(monConfig.Source);
                     var monId = monitor.MonitorId;
 
                     tasks.Add(Task.Run(async () =>
@@ -170,7 +162,7 @@ public class Scheduler : IDisposable
             }
             else
             {
-                var provider = CreateProvider(_settings.GlobalSource);
+                var provider = ResolveProvider(_settings.GlobalSource);
                 var imagePath = await provider.GetNextImagePathAsync(token);
 
                 if (!string.IsNullOrEmpty(imagePath) && !token.IsCancellationRequested)
@@ -241,7 +233,7 @@ public class Scheduler : IDisposable
         var monConfig = _settings.Monitors.FirstOrDefault(m => m.MonitorId == monitor.MonitorId)
                         ?? new MonitorConfig { Source = _settings.GlobalSource };
 
-        var provider = CreateProvider(monConfig.Source);
+        var provider = ResolveProvider(monConfig.Source);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         var imgPath = await provider.GetNextImagePathAsync(cts.Token);
 

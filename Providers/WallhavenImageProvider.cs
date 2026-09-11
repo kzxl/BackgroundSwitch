@@ -1,28 +1,22 @@
-using System.IO;
 using System.Net.Http;
 using System.Text.Json;
 using BackgroundSwitch.Services;
 
 namespace BackgroundSwitch.Providers;
 
-public class WallhavenImageProvider : IImageProvider
+public class WallhavenImageProvider : BaseHttpImageProvider
 {
-    private static readonly HttpClient SharedHttpClient = new()
-    {
-        Timeout = TimeSpan.FromSeconds(30)
-    };
-
     private readonly string _query;
     private readonly string _apiKey;
     private readonly Random _random = new();
 
-    public WallhavenImageProvider(string query, string apiKey = "")
+    public WallhavenImageProvider(string? query, string? apiKey = "")
     {
         _query = string.IsNullOrWhiteSpace(query) ? "nature" : query.Trim();
         _apiKey = apiKey?.Trim() ?? string.Empty;
     }
 
-    public async Task<string?> GetNextImagePathAsync(CancellationToken cancellationToken = default)
+    public override async Task<string?> GetNextImagePathAsync(CancellationToken cancellationToken = default)
     {
         try
         {
@@ -59,7 +53,7 @@ public class WallhavenImageProvider : IImageProvider
                 if (candidateUrls.Count > 0)
                 {
                     var selectedUrl = candidateUrls[_random.Next(candidateUrls.Count)];
-                    return await DownloadStreamToDiskAsync(selectedUrl, cancellationToken);
+                    return await DownloadAndCacheImageAsync(selectedUrl, "Wallhaven", cancellationToken);
                 }
             }
         }
@@ -73,44 +67,5 @@ public class WallhavenImageProvider : IImageProvider
         }
 
         return null;
-    }
-
-    private static async Task<string?> DownloadStreamToDiskAsync(string url, CancellationToken cancellationToken)
-    {
-        using var response = await SharedHttpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-        response.EnsureSuccessStatusCode();
-
-        var tempPath = Path.Combine(Path.GetTempPath(), "BackgroundSwitch", "Wallhaven");
-        if (!Directory.Exists(tempPath))
-        {
-            Directory.CreateDirectory(tempPath);
-        }
-
-        // Cleanup old temp files (keep last 10)
-        try
-        {
-            var files = Directory.GetFiles(tempPath, "wallhaven_*.jpg")
-                                 .Select(f => new FileInfo(f))
-                                 .OrderByDescending(f => f.LastWriteTimeUtc)
-                                 .Skip(10);
-
-            foreach (var fi in files)
-            {
-                try { fi.Delete(); } catch { }
-            }
-        }
-        catch { }
-
-        var filePath = Path.Combine(tempPath, $"wallhaven_{Guid.NewGuid():N}.jpg");
-        var tempDownloading = $"{filePath}.tmp";
-
-        await using (var httpStream = await response.Content.ReadAsStreamAsync(cancellationToken))
-        await using (var fileStream = new FileStream(tempDownloading, FileMode.Create, FileAccess.Write, FileShare.None, 81920, true))
-        {
-            await httpStream.CopyToAsync(fileStream, cancellationToken);
-        }
-
-        File.Move(tempDownloading, filePath);
-        return filePath;
     }
 }

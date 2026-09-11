@@ -23,9 +23,11 @@ public enum WallpaperScale
 
 public class ProviderConfig
 {
+    public const string DefaultPexelsApiKey = "3zV2AOzguJiTCbhfkJ23RX9OKmVTECdaHr4K25jL184ojUFwz4KrOJA2";
+
     public string Type { get; set; } = "BingDaily"; // "BingDaily", "Reddit", "Wallhaven", "Nasa", "Local", "Pexels", "Unsplash"
     public string LocalFolderPath { get; set; } = string.Empty;
-    public string PexelsApiKey { get; set; } = string.Empty;
+    public string PexelsApiKey { get; set; } = DefaultPexelsApiKey;
     public string PexelsQuery { get; set; } = "nature";
 
     // New Providers Config
@@ -101,6 +103,10 @@ public class AppSettings
                 var settings = JsonSerializer.Deserialize<AppSettings>(json);
                 if (settings != null)
                 {
+                    if (string.IsNullOrWhiteSpace(settings.GlobalSource.PexelsApiKey))
+                    {
+                        settings.GlobalSource.PexelsApiKey = ProviderConfig.DefaultPexelsApiKey;
+                    }
                     return settings;
                 }
             }
