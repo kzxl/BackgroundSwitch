@@ -244,25 +244,48 @@ public class TrayIconService : IDisposable
     {
         try
         {
-            using var bmp = new Bitmap(32, 32);
-            using var g = Graphics.FromImage(bmp);
-            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            var candidates = new[]
+            {
+                Path.Combine(baseDir, "app.ico"),
+                Path.Combine(baseDir, "assets", "app.ico"),
+                Path.Combine(baseDir, "assets", "app_icon_32.png"),
+                Path.Combine(baseDir, "assets", "app_icon.png")
+            };
 
-            using var brush = new SolidBrush(Color.FromArgb(137, 180, 250));
-            g.FillEllipse(brush, 2, 2, 28, 28);
+            foreach (var path in candidates)
+            {
+                if (File.Exists(path))
+                {
+                    if (path.EndsWith(".ico", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return new Icon(path, 32, 32);
+                    }
+                    else
+                    {
+                        using var img = new Bitmap(path);
+                        var hIcon = img.GetHicon();
+                        return Icon.FromHandle(hIcon);
+                    }
+                }
+            }
 
-            using var pen = new Pen(Color.FromArgb(17, 17, 27), 2f);
-            g.DrawRectangle(pen, 7, 7, 18, 12);
-            g.DrawLine(pen, 16, 19, 16, 23);
-            g.DrawLine(pen, 11, 23, 21, 23);
-
-            var hIcon = bmp.GetHicon();
-            return Icon.FromHandle(hIcon);
+            var resUri = new Uri("pack://application:,,,/app.ico", UriKind.Absolute);
+            var streamInfo = System.Windows.Application.GetResourceStream(resUri);
+            if (streamInfo != null)
+            {
+                using (streamInfo.Stream)
+                {
+                    return new Icon(streamInfo.Stream, 32, 32);
+                }
+            }
         }
-        catch
+        catch (Exception ex)
         {
-            return SystemIcons.Information;
+            Debug.WriteLine($"[TrayIconService] Error loading icon: {ex.Message}");
         }
+
+        return SystemIcons.Application;
     }
 
     public void Dispose()

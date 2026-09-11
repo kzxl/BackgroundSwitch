@@ -4,6 +4,7 @@
         xmlns:models="clr-namespace:BackgroundSwitch.Models"
         xmlns:common="clr-namespace:BackgroundSwitch.Common"
         Title="{Binding AppTitleText}" Height="840" Width="920" MinHeight="750" MinWidth="860"
+        Icon="assets/app_icon.png"
         WindowStartupLocation="CenterScreen" ResizeMode="CanResizeWithGrip"
         Background="{DynamicResource ZeroUI.BgPrimary}" Foreground="{DynamicResource ZeroUI.TextPrimary}"
         Closing="Window_Closing">
@@ -223,7 +224,7 @@
 
                 <!-- Brand Title & Active Provider Pip -->
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="🖼️" FontSize="22" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <Image Source="assets/app_icon.png" Width="26" Height="26" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <StackPanel VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="BackgroundSwitch" FontSize="18" FontWeight="Bold" Foreground="{StaticResource BrushTextPrimary}"/>
