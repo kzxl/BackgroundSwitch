@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using System.Windows.Input;
 using BackgroundSwitch.Common;
 using BackgroundSwitch.Models;
+using BackgroundSwitch.Providers;
 using BackgroundSwitch.Services;
 using Microsoft.Win32;
 using Application = System.Windows.Application;
@@ -50,6 +51,7 @@ public class MainViewModel : ViewModelBase
     private bool _isStatusVisible;
 
     public ObservableCollection<MonitorInfoItem> Monitors { get; } = [];
+    public ObservableCollection<int> CacheLimitOptions { get; } = [5, 10, 20, 50];
 
     // Commands
     public ICommand SelectTabCommand { get; }
@@ -64,6 +66,9 @@ public class MainViewModel : ViewModelBase
     public ICommand SelectIntervalPresetCommand { get; }
     public ICommand SaveCurrentPictureAsCommand { get; }
     public ICommand OpenCurrentInExplorerCommand { get; }
+    public ICommand AddToFavoritesCommand { get; }
+    public ICommand ClearCacheNowCommand { get; }
+    public ICommand OpenFavoritesFolderCommand { get; }
     public ICommand BlacklistCurrentWallpaperCommand { get; }
     public ICommand DismissStatusCommand { get; }
 
@@ -133,6 +138,9 @@ public class MainViewModel : ViewModelBase
 
         SaveCurrentPictureAsCommand = new RelayCommand(SaveCurrentPictureAs);
         OpenCurrentInExplorerCommand = new RelayCommand(OpenCurrentInExplorer);
+        AddToFavoritesCommand = new RelayCommand(AddToFavorites);
+        ClearCacheNowCommand = new RelayCommand(ClearCacheNow);
+        OpenFavoritesFolderCommand = new RelayCommand(OpenFavoritesFolder);
         BlacklistCurrentWallpaperCommand = new AsyncRelayCommand(BlacklistCurrentAsync);
         DismissStatusCommand = new RelayCommand(() => IsStatusVisible = false);
 
@@ -148,6 +156,7 @@ public class MainViewModel : ViewModelBase
         {
             CurrentWallpaperPath = _scheduler.GetCurrentActiveWallpaperPath();
             BlacklistCount = BlacklistManager.Instance.Count;
+            RefreshCacheStats();
         }));
     }
 
@@ -508,6 +517,33 @@ public class MainViewModel : ViewModelBase
         set => SetProperty(ref _showWallpaperInfoInApp, value);
     }
 
+    private int _maxCachedImages = 5;
+    public int MaxCachedImages
+    {
+        get => _maxCachedImages;
+        set
+        {
+            if (SetProperty(ref _maxCachedImages, value))
+            {
+                BaseHttpImageProvider.MaxCachedCount = value;
+            }
+        }
+    }
+
+    private bool _clearCacheOnExit;
+    public bool ClearCacheOnExit
+    {
+        get => _clearCacheOnExit;
+        set => SetProperty(ref _clearCacheOnExit, value);
+    }
+
+    private string _cacheUsageText = "0.0 MB (0 ảnh)";
+    public string CacheUsageText
+    {
+        get => _cacheUsageText;
+        set => SetProperty(ref _cacheUsageText, value);
+    }
+
     public string Language
     {
         get => _language;
@@ -603,6 +639,13 @@ public class MainViewModel : ViewModelBase
     public string AutoStartText => LocalizationManager.Get("UI_AutoStart");
     public string ShowWallpaperInfoOnDesktopText => LocalizationManager.Get("UI_ShowWallpaperInfoOnDesktop");
     public string ShowWallpaperInfoInAppText => LocalizationManager.Get("UI_ShowWallpaperInfoInApp");
+    public string FavoriteBtnText => LocalizationManager.Get("UI_FavoriteBtn");
+    public string CacheSectionText => LocalizationManager.Get("UI_CacheSection");
+    public string MaxCachedImagesText => LocalizationManager.Get("UI_MaxCachedImages");
+    public string ClearCacheOnExitText => LocalizationManager.Get("UI_ClearCacheOnExit");
+    public string CurrentCacheUsageText => LocalizationManager.Get("UI_CurrentCacheUsage");
+    public string ClearCacheNowBtnText => LocalizationManager.Get("UI_ClearCacheNowBtn");
+    public string OpenFavoritesFolderBtnText => LocalizationManager.Get("UI_OpenFavoritesFolderBtn");
     public string ClearBlacklistBtnText => LocalizationManager.Get("UI_ClearBlacklistBtn");
     public string SaveBtnText => LocalizationManager.Get("UI_SaveBtn");
 
@@ -645,6 +688,13 @@ public class MainViewModel : ViewModelBase
         OnPropertyChanged(nameof(AutoStartText));
         OnPropertyChanged(nameof(ShowWallpaperInfoOnDesktopText));
         OnPropertyChanged(nameof(ShowWallpaperInfoInAppText));
+        OnPropertyChanged(nameof(FavoriteBtnText));
+        OnPropertyChanged(nameof(CacheSectionText));
+        OnPropertyChanged(nameof(MaxCachedImagesText));
+        OnPropertyChanged(nameof(ClearCacheOnExitText));
+        OnPropertyChanged(nameof(CurrentCacheUsageText));
+        OnPropertyChanged(nameof(ClearCacheNowBtnText));
+        OnPropertyChanged(nameof(OpenFavoritesFolderBtnText));
         OnPropertyChanged(nameof(ClearBlacklistBtnText));
         OnPropertyChanged(nameof(SaveBtnText));
         OnPropertyChanged(nameof(BlacklistCountText));
@@ -683,6 +733,9 @@ public class MainViewModel : ViewModelBase
         AutoStart = _settings.AutoStart;
         ShowWallpaperInfoOnDesktop = _settings.ShowWallpaperInfoOnDesktop;
         ShowWallpaperInfoInApp = _settings.ShowWallpaperInfoInApp;
+        MaxCachedImages = _settings.MaxCachedImages;
+        ClearCacheOnExit = _settings.ClearCacheOnExit;
+        RefreshCacheStats();
 
         var source = _settings.GlobalSource;
         SourceType = string.IsNullOrWhiteSpace(source.Type) ? "Pexels" : source.Type;
@@ -718,6 +771,8 @@ public class MainViewModel : ViewModelBase
         _settings.AutoStart = AutoStart;
         _settings.ShowWallpaperInfoOnDesktop = ShowWallpaperInfoOnDesktop;
         _settings.ShowWallpaperInfoInApp = ShowWallpaperInfoInApp;
+        _settings.MaxCachedImages = MaxCachedImages;
+        _settings.ClearCacheOnExit = ClearCacheOnExit;
 
         _settings.GlobalSource.Type = SourceType;
         _settings.GlobalSource.RedditSubreddit = string.IsNullOrWhiteSpace(RedditSubreddit) ? "wallpapers" : RedditSubreddit.Trim();
@@ -808,6 +863,55 @@ public class MainViewModel : ViewModelBase
         else
         {
             TrayIconService.OpenCacheFolder();
+        }
+    }
+
+    private void RefreshCacheStats()
+    {
+        var stats = CacheManager.GetCacheStats();
+        CacheUsageText = stats.FormattedText;
+    }
+
+    private void AddToFavorites()
+    {
+        var currentImg = _scheduler.GetCurrentActiveWallpaperPath();
+        if (string.IsNullOrEmpty(currentImg) || !File.Exists(currentImg))
+        {
+            ShowToast("Chưa có ảnh nền đang hoạt động để lưu.", "Warning");
+            return;
+        }
+
+        var meta = WallpaperMetadataManager.Instance.GetMetadata(currentImg);
+        var savedPath = CacheManager.SaveToFavorites(currentImg, meta, _settings.GetEffectiveFavoritesFolder());
+        if (!string.IsNullOrEmpty(savedPath))
+        {
+            ShowToast($"{LocalizationManager.Get("Msg_FavoriteSaved")} ➔ {Path.GetFileName(savedPath)}", "Success");
+        }
+        else
+        {
+            ShowToast("Không thể lưu ảnh vào mục Yêu thích.", "Error");
+        }
+    }
+
+    private void ClearCacheNow()
+    {
+        var activeFiles = _scheduler.CurrentWallpapers.Values.ToList();
+        int deleted = CacheManager.ClearAllCache(activeFiles);
+        RefreshCacheStats();
+        ShowToast($"{LocalizationManager.Get("Msg_CacheCleared")} ({deleted} files)", "Success");
+    }
+
+    private void OpenFavoritesFolder()
+    {
+        try
+        {
+            var folder = _settings.GetEffectiveFavoritesFolder();
+            if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+            Process.Start(new ProcessStartInfo("explorer.exe", folder) { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            ShowToast($"Không thể mở thư mục: {ex.Message}", "Error");
         }
     }
 

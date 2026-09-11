@@ -16,6 +16,8 @@ public abstract class BaseHttpImageProvider : IImageProvider
         Timeout = TimeSpan.FromSeconds(30)
     };
 
+    public static int MaxCachedCount { get; set; } = 5;
+
     public abstract Task<string?> GetNextImagePathAsync(CancellationToken cancellationToken = default);
 
     protected static async Task<string?> DownloadAndCacheImageAsync(string imageUrl, string subFolder, CancellationToken cancellationToken)
@@ -31,10 +33,16 @@ public abstract class BaseHttpImageProvider : IImageProvider
             Directory.CreateDirectory(tempDir);
         }
 
-        CleanupOldCacheFiles(tempDir, 10);
-
         var targetFile = Path.Combine(tempDir, $"wallpaper_{Guid.NewGuid():N}.jpg");
-        return await DownloadStreamToDiskAsync(imageUrl, targetFile, cancellationToken);
+        var downloaded = await DownloadStreamToDiskAsync(imageUrl, targetFile, cancellationToken);
+        if (!string.IsNullOrEmpty(downloaded))
+        {
+            // Cuốn chiếu: Chỉ giữ tối đa 5 tấm gần nhất trong thư mục nguồn này
+            CacheManager.EnforceRollingLimit(tempDir, MaxCachedCount, new[] { downloaded });
+            return downloaded;
+        }
+
+        return null;
     }
 
     protected static async Task<string?> DownloadStreamToDiskAsync(string url, string targetPath, CancellationToken cancellationToken)

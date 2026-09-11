@@ -148,6 +148,16 @@ public partial class App : Application
             _mainWindow = null;
         }
 
+        if (_settings.ClearCacheOnExit)
+        {
+            try
+            {
+                var activeFiles = _scheduler?.CurrentWallpapers.Values.ToList();
+                CacheManager.ClearAllCache(activeFiles);
+            }
+            catch { }
+        }
+
         _singleInstanceMutex?.ReleaseMutex();
         _singleInstanceMutex?.Dispose();
         _singleInstanceMutex = null;

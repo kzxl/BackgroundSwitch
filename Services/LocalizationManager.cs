@@ -80,6 +80,13 @@ public static class LocalizationManager
         { "UI_AutoStart", ("Start with Windows (100% silent & zero-flicker)", "Khởi động cùng Windows (Chạy ngầm 100% không chớp màn hình)") },
         { "UI_ShowWallpaperInfoOnDesktop", ("Show photo title & author on Desktop (Spotlight watermark)", "Hiển thị tên ảnh & tác giả ở góc màn hình Desktop (Watermark tinh tế)") },
         { "UI_ShowWallpaperInfoInApp", ("Show photo title & author in App and notifications", "Hiển thị thông tin tên ảnh & tác giả trong ứng dụng & thông báo") },
+        { "UI_FavoriteBtn", ("❤️ Favorite", "❤️ Yêu thích") },
+        { "UI_CacheSection", ("💾 Cache & Storage Policy", "💾 Quản Lý Bộ Nhớ Đệm & Lưu Trữ") },
+        { "UI_MaxCachedImages", ("Max rolling cache images per source:", "Số lượng ảnh tạm cuốn chiếu tối đa:") },
+        { "UI_ClearCacheOnExit", ("Clear temporary cache automatically on exit", "Tự động dọn sạch bộ nhớ đệm tạm khi đóng ứng dụng") },
+        { "UI_CurrentCacheUsage", ("Current Cache Usage:", "Dung lượng bộ nhớ đệm tạm hiện tại:") },
+        { "UI_ClearCacheNowBtn", ("🧹 Clear Cache Now", "🧹 Dọn sạch Cache ngay") },
+        { "UI_OpenFavoritesFolderBtn", ("📂 Open Favorites Folder", "📂 Mở thư mục Yêu thích") },
         { "UI_LanguageLabel", ("Language:", "Ngôn ngữ:") },
         { "UI_BlacklistInfo", ("Blacklisted Images:", "Số ảnh đã chặn (Blacklist):") },
         { "UI_ClearBlacklistBtn", ("🧹 Clear Blacklist", "🧹 Xóa danh sách chặn") },
@@ -88,6 +95,8 @@ public static class LocalizationManager
 
         // Messages
         { "Msg_SaveSuccess", ("Settings saved successfully!", "Cài đặt đã được lưu thành công!") },
+        { "Msg_FavoriteSaved", ("Added current wallpaper to Favorites collection!", "Đã thêm ảnh hiện tại vào bộ sưu tập Yêu thích!") },
+        { "Msg_CacheCleared", ("Temporary cache cleaned up successfully!", "Đã dọn dẹp sạch bộ nhớ đệm tạm thành công!") },
         { "Msg_BlacklistSuccess", ("Image added to Blacklist and switched to next wallpaper.", "Đã thêm ảnh vào danh sách chặn và chuyển sang ảnh tiếp theo.") },
         { "Msg_ClearBlacklistConfirm", ("Are you sure you want to clear all blacklisted images?", "Bạn có chắc chắn muốn xóa toàn bộ danh sách ảnh đã chặn không?") },
         { "Msg_ClearBlacklistDone", ("Blacklist cleared successfully!", "Đã xóa danh sách chặn thành công!") }

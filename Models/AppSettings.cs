@@ -65,6 +65,23 @@ public class AppSettings
     public string Language { get; set; } = "bilingual"; // "bilingual", "vi", "en"
     public bool ShowWallpaperInfoOnDesktop { get; set; } = false; // Hiển thị tên ảnh và tác giả ở góc desktop
     public bool ShowWallpaperInfoInApp { get; set; } = true;      // Hiển thị tên ảnh và tác giả trong app & toast
+    public int MaxCachedImages { get; set; } = 5;                 // Giới hạn số lượng ảnh tạm cuốn chiếu (FIFO)
+    public bool ClearCacheOnExit { get; set; } = false;           // Tự động xóa sạch cache khi thoát app
+    public string FavoritesFolderPath { get; set; } = string.Empty; // Thư mục lưu ảnh yêu thích
+
+    public string GetEffectiveFavoritesFolder()
+    {
+        if (!string.IsNullOrWhiteSpace(FavoritesFolderPath) && Directory.Exists(FavoritesFolderPath))
+        {
+            return FavoritesFolderPath;
+        }
+        var defaultFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "BackgroundSwitch Wallpapers");
+        if (!Directory.Exists(defaultFolder))
+        {
+            try { Directory.CreateDirectory(defaultFolder); } catch { }
+        }
+        return defaultFolder;
+    }
 
     // Nguồn ảnh chung khi ở chế độ Synced hoặc Span
     public ProviderConfig GlobalSource { get; set; } = new();

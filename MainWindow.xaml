@@ -368,9 +368,10 @@
 
                 <!-- Live Preview Quick Action Pills -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="{Binding FavoriteBtnText}" Command="{Binding AddToFavoritesCommand}" Style="{StaticResource AccentButton}" Padding="14,7" Margin="0,0,8,0"/>
                     <Button Content="💾 Lưu ảnh" Command="{Binding SaveCurrentPictureAsCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0"/>
                     <Button Content="🔍 Xem file" Command="{Binding OpenCurrentInExplorerCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0"/>
-                    <Button Content="🚫 Chặn ảnh này" Command="{Binding BlacklistCurrentWallpaperCommand}" Style="{StaticResource DangerButton}"/>
+                    <Button Content="🚫 Chặn ảnh" Command="{Binding BlacklistCurrentWallpaperCommand}" Style="{StaticResource DangerButton}"/>
                 </StackPanel>
             </Grid>
         </Border>
@@ -784,6 +785,47 @@
 
                             <CheckBox Content="{Binding ShowWallpaperInfoInAppText}" IsChecked="{Binding ShowWallpaperInfoInApp, Mode=TwoWay}" FontSize="13" Margin="0,0,0,6"/>
                             <TextBlock Text="💡 Hiển thị tên tác phẩm, nhiếp ảnh gia và nguồn ảnh trên thanh Live Preview và thông báo khi đổi ảnh." FontSize="11.5" Foreground="{StaticResource BrushTextMuted}" Margin="24,0,0,0" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Cache & Storage Management Card -->
+                    <Border Background="{StaticResource BrushBgCard}" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1" CornerRadius="10" Padding="18" Margin="0,0,0,16">
+                        <StackPanel>
+                            <TextBlock Text="{Binding CacheSectionText}" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushPrimaryAccent}" Margin="0,0,0,12"/>
+
+                            <!-- Rolling Cache Count Selector -->
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="140"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding MaxCachedImagesText}" FontSize="13" FontWeight="SemiBold"/>
+                                    <TextBlock Text="💡 Tự động xóa ảnh tạm cũ nhất (cuốn chiếu FIFO) khi tải ảnh mới để tránh tốn dung lượng ổ cứng." FontSize="11.5" Foreground="{StaticResource BrushTextMuted}" Margin="0,2,0,0"/>
+                                </StackPanel>
+                                <ComboBox Grid.Column="1" ItemsSource="{Binding CacheLimitOptions}" SelectedItem="{Binding MaxCachedImages, Mode=TwoWay}" VerticalAlignment="Center" HorizontalContentAlignment="Center"/>
+                            </Grid>
+
+                            <!-- Clear Cache on Exit Checkbox -->
+                            <CheckBox Content="{Binding ClearCacheOnExitText}" IsChecked="{Binding ClearCacheOnExit, Mode=TwoWay}" FontSize="13" Margin="0,0,0,14"/>
+
+                            <!-- Cache Stats and Quick Maintenance Actions -->
+                            <Border Background="{StaticResource BrushBgInput}" CornerRadius="8" Padding="14,10">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding CurrentCacheUsageText}" FontSize="11.5" Foreground="{StaticResource BrushTextMuted}"/>
+                                        <TextBlock Text="{Binding CacheUsageText}" FontSize="14" FontWeight="Bold" Foreground="{StaticResource BrushSuccessAccent}" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Button Content="{Binding ClearCacheNowBtnText}" Command="{Binding ClearCacheNowCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0" Padding="12,6"/>
+                                        <Button Content="{Binding OpenFavoritesFolderBtnText}" Command="{Binding OpenFavoritesFolderCommand}" Style="{StaticResource SecondaryButton}" Padding="12,6"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
                         </StackPanel>
                     </Border>
 

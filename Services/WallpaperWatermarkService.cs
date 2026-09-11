@@ -130,6 +130,10 @@ public static class WallpaperWatermarkService
             encoderParams.Param[0] = new EncoderParameter(Encoder.Quality, 95L);
 
             canvas.Save(outPath, encoder, encoderParams);
+
+            // Cuốn chiếu: Giữ tối đa 5 file overlay gần nhất
+            CacheManager.EnforceRollingLimit(OverlayDir, 5, new[] { outPath });
+
             return outPath;
         }
         catch (Exception ex)
