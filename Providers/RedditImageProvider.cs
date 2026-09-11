@@ -44,6 +44,23 @@ public class RedditImageProvider : BaseHttpImageProvider
                         if (postData.TryGetProperty("url_overridden_by_dest", out var urlProp) ||
                             postData.TryGetProperty("url", out urlProp))
                         {
+                            // Filter out portrait/vertical phone wallpapers
+                            if (postData.TryGetProperty("preview", out var prevEl) &&
+                                prevEl.TryGetProperty("images", out var imgArr) &&
+                                imgArr.GetArrayLength() > 0 &&
+                                imgArr[0].TryGetProperty("source", out var srcEl))
+                            {
+                                if (srcEl.TryGetProperty("width", out var wEl) && srcEl.TryGetProperty("height", out var hEl))
+                                {
+                                    int w = wEl.GetInt32();
+                                    int h = hEl.GetInt32();
+                                    if (w <= h || (double)w / h < 1.15)
+                                    {
+                                        continue;
+                                    }
+                                }
+                            }
+
                             var imgUrl = urlProp.GetString();
                             if (!string.IsNullOrEmpty(imgUrl) && IsDirectImageUrl(imgUrl) && !BlacklistManager.Instance.IsBlacklisted(imgUrl))
                             {

@@ -32,7 +32,7 @@ public class PexelsImageProvider : BaseHttpImageProvider
                 cancellationToken.ThrowIfCancellationRequested();
 
                 int randomPage = _random.Next(1, 10);
-                string url = $"https://api.pexels.com/v1/search?query={Uri.EscapeDataString(currentTopic)}&per_page=15&page={randomPage}";
+                string url = $"https://api.pexels.com/v1/search?query={Uri.EscapeDataString(currentTopic)}&orientation=landscape&per_page=15&page={randomPage}";
 
                 using var request = new HttpRequestMessage(HttpMethod.Get, url);
                 request.Headers.Add("Authorization", _apiKey);
@@ -49,6 +49,17 @@ public class PexelsImageProvider : BaseHttpImageProvider
                     var candidates = new List<(string Url, string Title, string Author, string PhotoUrl)>();
                     foreach (var photo in photos.EnumerateArray())
                     {
+                        // Filter out any portrait or square images to avoid bad crops on widescreen monitors
+                        if (photo.TryGetProperty("width", out var wEl) && photo.TryGetProperty("height", out var hEl))
+                        {
+                            int w = wEl.GetInt32();
+                            int h = hEl.GetInt32();
+                            if (w <= h || (double)w / h < 1.15)
+                            {
+                                continue;
+                            }
+                        }
+
                         if (photo.TryGetProperty("src", out var src) && src.TryGetProperty("original", out var imgEl))
                         {
                             var imgUrl = imgEl.GetString();

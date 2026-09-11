@@ -249,7 +249,7 @@ public static class WallpaperManager
         return false;
     }
 
-    public static void SetPosition(WallpaperScale scale)
+    public static void SetPosition(WallpaperScale scale, bool refreshImmediately = false)
     {
         // 1. Update Windows Registry for scale style
         try
@@ -282,10 +282,51 @@ public static class WallpaperManager
         {
             var desktopWallpaper = (IDesktopWallpaper)new DesktopWallpaper();
             desktopWallpaper.SetPosition((int)scale);
+
+            if (refreshImmediately)
+            {
+                RefreshCurrentWallpapers();
+            }
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"[WallpaperManager] COM SetPosition error: {ex.Message}");
+        }
+    }
+
+    public static void RefreshCurrentWallpapers()
+    {
+        try
+        {
+            var desktopWallpaper = (IDesktopWallpaper)new DesktopWallpaper();
+            uint count = desktopWallpaper.GetMonitorDevicePathCount();
+            if (count > 0)
+            {
+                for (uint i = 0; i < count; i++)
+                {
+                    desktopWallpaper.GetMonitorDevicePathAt(i, out var mId);
+                    if (!string.IsNullOrEmpty(mId))
+                    {
+                        string current = desktopWallpaper.GetWallpaper(mId);
+                        if (!string.IsNullOrEmpty(current) && File.Exists(current))
+                        {
+                            desktopWallpaper.SetWallpaper(mId, current);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                string current = desktopWallpaper.GetWallpaper(null);
+                if (!string.IsNullOrEmpty(current) && File.Exists(current))
+                {
+                    desktopWallpaper.SetWallpaper(null, current);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[WallpaperManager] Error refreshing wallpapers: {ex.Message}");
         }
     }
 }

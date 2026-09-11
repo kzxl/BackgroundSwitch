@@ -374,7 +374,29 @@ public class MainViewModel : ViewModelBase
     public WallpaperScale Scale
     {
         get => _scale;
-        set => SetProperty(ref _scale, value);
+        set
+        {
+            if (SetProperty(ref _scale, value))
+            {
+                _settings.Scale = value;
+                WallpaperManager.SetPosition(value, refreshImmediately: true);
+                ShowToast($"{LocalizationManager.Get("UI_ScaleLabel")} {GetScaleDisplayName(value)}", "Info");
+            }
+        }
+    }
+
+    private static string GetScaleDisplayName(WallpaperScale scale)
+    {
+        return scale switch
+        {
+            WallpaperScale.Fill => LocalizationManager.Get("UI_ScaleFill"),
+            WallpaperScale.Fit => LocalizationManager.Get("UI_ScaleFit"),
+            WallpaperScale.Stretch => LocalizationManager.Get("UI_ScaleStretch"),
+            WallpaperScale.Center => LocalizationManager.Get("UI_ScaleCenter"),
+            WallpaperScale.Tile => LocalizationManager.Get("UI_ScaleTile"),
+            WallpaperScale.Span => LocalizationManager.Get("UI_ScaleSpan"),
+            _ => scale.ToString()
+        };
     }
 
     public string SourceType
