@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/.NET-10.0%20WPF-512BD4?style=flat-square&logo=dotnet" alt=".NET 10.0 WPF" />
+  <img src="https://img.shields.io/badge/.NET-8.0%20WPF-512BD4?style=flat-square&logo=dotnet" alt=".NET 8.0 WPF" />
   <img src="https://img.shields.io/badge/C%23-13-239120?style=flat-square&logo=c-sharp" alt="C# 13" />
   <img src="https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6?style=flat-square&logo=windows" alt="Windows 10 / 11" />
   <img src="https://img.shields.io/badge/UI-ZeroUI%20Dark%20Theme-6366F1?style=flat-square" alt="ZeroUI Dark Theme" />
@@ -93,7 +93,7 @@ BackgroundSwitch/
 ### Prerequisites
 
 - **Windows 10** (build 1809 or later) or **Windows 11**
-- [.NET 10 SDK](https://dotnet.microsoft.com/download) (or .NET 10 Desktop Runtime)
+- [.NET 8 SDK](https://dotnet.microsoft.com/download) (or .NET 8 Desktop Runtime)
 
 ### Clone and Run
 
@@ -113,7 +113,7 @@ dotnet run
 BackgroundSwitch supports two deployment options:
 
 ### 1. Lite (Framework-Dependent Single File)
-Requires .NET 10 Desktop Runtime installed on the machine. Small footprint (~15MB).
+Requires .NET 8 Desktop Runtime installed on the machine. Small footprint (~15MB).
 
 ```bash
 dotnet publish -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -o ./publish/lite
@@ -126,15 +126,6 @@ Standalone executable. Can be copied and run on any modern Windows 64-bit PC wit
 dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o ./publish/full
 ```
 
----
-
-## 🏷️ GitHub Metadata (Suggested)
-
-### Repository Description
-> Modern Windows desktop wallpaper switcher with per-monitor rotation, 7 curated online sources (Pexels, Wallhaven, Bing, NASA, Unsplash, Reddit), frosted glass SkiaSharp watermarks, live countdown timer, and ZeroUI dark theme.
-
-### Repository Topics
-`wpf` `dotnet` `csharp` `wallpaper` `wallpaper-switcher` `windows11` `windows10` `per-monitor` `wallhaven` `pexels-api` `bing-wallpaper` `nasa-apod` `unsplash` `reddit-wallpaper` `skiasharp` `zeroui` `system-tray` `dark-theme`
 
 ---
 
