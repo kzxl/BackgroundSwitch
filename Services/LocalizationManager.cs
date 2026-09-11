@@ -30,6 +30,12 @@ public static class LocalizationManager
         { "Menu_ClearBackground", ("Clear Background", "Xóa hình nền") },
         { "Menu_Settings", ("Settings...", "Cài đặt & Cấu hình...") },
         { "Menu_Exit", ("Exit", "Thoát") },
+        { "Tray_TooltipActive", ("BackgroundSwitch — Active", "BackgroundSwitch — Đang chạy") },
+        { "Tray_TooltipPaused", ("BackgroundSwitch — Paused", "BackgroundSwitch — Đang tạm dừng") },
+        { "Msg_NoActiveWallpaper", ("No active wallpaper to save.", "Không có hình nền nào đang hoạt động để lưu.") },
+        { "Msg_SaveSuccess", ("Wallpaper saved successfully!", "Đã lưu hình nền thành công!") },
+        { "Msg_SaveError", ("Could not save image: {0}", "Không thể lưu hình ảnh: {0}") },
+        { "Msg_SaveTitle", ("Save Wallpaper", "Lưu Hình Nền") },
 
         // MainWindow Navigation & Header
         { "UI_Title", ("BackgroundSwitch — Multi-Monitor Wallpaper Changer", "BackgroundSwitch — Tự Động Đổi Hình Nền Đa Màn Hình") },

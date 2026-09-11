@@ -1,24 +1,43 @@
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using BackgroundSwitch.Services;
+using Application = System.Windows.Application;
+using MessageBox = System.Windows.MessageBox;
+using MessageBoxButton = System.Windows.MessageBoxButton;
+using MessageBoxImage = System.Windows.MessageBoxImage;
 
 namespace BackgroundSwitch.Services;
 
 public class TrayIconService : IDisposable
 {
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern bool DestroyIcon(IntPtr hIcon);
+
     private readonly Scheduler _scheduler;
     private readonly Action _showMainWindowAction;
     private readonly Action _exitAppAction;
+
     private NotifyIcon? _trayIcon;
+    private Icon? _loadedIcon;
     private bool _disposed;
+
+    private readonly Action<bool> _onPauseChangedHandler;
+    private readonly Action _onWallpaperChangedHandler;
 
     public TrayIconService(Scheduler scheduler, Action showMainWindowAction, Action exitAppAction)
     {
         _scheduler = scheduler ?? throw new ArgumentNullException(nameof(scheduler));
         _showMainWindowAction = showMainWindowAction ?? throw new ArgumentNullException(nameof(showMainWindowAction));
         _exitAppAction = exitAppAction ?? throw new ArgumentNullException(nameof(exitAppAction));
+
+        _onPauseChangedHandler = _ => UpdateTrayTooltip();
+        _onWallpaperChangedHandler = UpdateTrayTooltip;
+
+        _scheduler.OnPauseStateChanged += _onPauseChangedHandler;
+        _scheduler.OnWallpaperChanged += _onWallpaperChangedHandler;
 
         InitTrayIcon();
     }
@@ -34,22 +53,45 @@ public class TrayIconService : IDisposable
 
         contextMenu.Opening += (_, _) => PopulateContextMenu(contextMenu);
 
+        _loadedIcon = LoadAppIcon();
+
         _trayIcon = new NotifyIcon
         {
-            Icon = CreateAppTrayIcon(),
-            Text = "BackgroundSwitch — Auto Wallpaper Changer",
+            Icon = _loadedIcon,
             ContextMenuStrip = contextMenu,
             Visible = true
         };
 
+        UpdateTrayTooltip();
+
         _trayIcon.DoubleClick += (_, _) => _showMainWindowAction();
+    }
+
+    private void UpdateTrayTooltip()
+    {
+        if (_trayIcon == null) return;
+
+        try
+        {
+            string stateKey = _scheduler.IsPaused ? "Tray_TooltipPaused" : "Tray_TooltipActive";
+            string tooltip = LocalizationManager.Get(stateKey);
+
+            if (tooltip.Length > 63)
+            {
+                tooltip = tooltip.Substring(0, 60) + "...";
+            }
+
+            _trayIcon.Text = tooltip;
+        }
+        catch { }
     }
 
     private void PopulateContextMenu(ContextMenuStrip menu)
     {
-        menu.Items.Clear();
+        // 1. Recursive dispose old items to prevent WinForms GDI handle leaks
+        ClearAndDisposeMenu(menu);
 
-        // 1. Next Background (Bold)
+        // 2. Next Background (Bold)
         var menuNext = new ToolStripMenuItem($"⏭️ {LocalizationManager.Get("Menu_Next")}")
         {
             Font = new Font(menu.Font, FontStyle.Bold),
@@ -58,7 +100,7 @@ public class TrayIconService : IDisposable
         menuNext.Click += async (_, _) => await _scheduler.ChangeWallpaperAsync();
         menu.Items.Add(menuNext);
 
-        // 2. Previous Background
+        // 3. Previous Background
         var canGoBack = _scheduler.History.CanGoBack;
         var menuPrev = new ToolStripMenuItem($"⏮️ {LocalizationManager.Get("Menu_Previous")}")
         {
@@ -68,7 +110,7 @@ public class TrayIconService : IDisposable
         menuPrev.Click += async (_, _) => await _scheduler.PreviousWallpaperAsync();
         menu.Items.Add(menuPrev);
 
-        // 3. Pause / Resume Toggle
+        // 4. Pause / Resume Toggle
         bool isPaused = _scheduler.IsPaused;
         var pauseText = isPaused ? $"▶️ {LocalizationManager.Get("Menu_Resume")}" : $"⏸️ {LocalizationManager.Get("Menu_Pause")}";
         var menuPause = new ToolStripMenuItem(pauseText)
@@ -80,7 +122,7 @@ public class TrayIconService : IDisposable
 
         menu.Items.Add(new ToolStripSeparator());
 
-        // 4. Save Picture As...
+        // 5. Save Picture As...
         var menuSaveAs = new ToolStripMenuItem($"💾 {LocalizationManager.Get("Menu_SaveAs")}")
         {
             ForeColor = Color.FromArgb(205, 214, 244)
@@ -88,7 +130,7 @@ public class TrayIconService : IDisposable
         menuSaveAs.Click += (_, _) => SaveCurrentPictureAs();
         menu.Items.Add(menuSaveAs);
 
-        // 5. View Current Picture (Open in Explorer)
+        // 6. View Current Picture (Open in Explorer)
         var menuViewCurrent = new ToolStripMenuItem($"🔍 {LocalizationManager.Get("Menu_ViewCurrent")}")
         {
             ForeColor = Color.FromArgb(205, 214, 244)
@@ -96,7 +138,7 @@ public class TrayIconService : IDisposable
         menuViewCurrent.Click += (_, _) => OpenCurrentPictureInExplorer();
         menu.Items.Add(menuViewCurrent);
 
-        // 6. Never Show Again (Blacklist)
+        // 7. Never Show Again (Blacklist)
         var menuNeverShowAgain = new ToolStripMenuItem($"🚫 {LocalizationManager.Get("Menu_NeverShowAgain")}")
         {
             ForeColor = Color.FromArgb(243, 139, 168)
@@ -104,7 +146,7 @@ public class TrayIconService : IDisposable
         menuNeverShowAgain.Click += async (_, _) => await _scheduler.BlacklistCurrentAsync();
         menu.Items.Add(menuNeverShowAgain);
 
-        // 7. Open Cache Folder
+        // 8. Open Cache Folder
         var menuOpenCache = new ToolStripMenuItem($"📂 {LocalizationManager.Get("Menu_OpenCache")}")
         {
             ForeColor = Color.FromArgb(205, 214, 244)
@@ -114,7 +156,7 @@ public class TrayIconService : IDisposable
 
         menu.Items.Add(new ToolStripSeparator());
 
-        // 8. Multi-Monitor Submenu
+        // 9. Multi-Monitor Submenu
         var monitors = WallpaperManager.GetMonitors();
         if (monitors.Count > 1)
         {
@@ -151,7 +193,7 @@ public class TrayIconService : IDisposable
             menu.Items.Add(new ToolStripSeparator());
         }
 
-        // 9. Clear Background
+        // 10. Clear Background
         var menuClear = new ToolStripMenuItem($"🧹 {LocalizationManager.Get("Menu_ClearBackground")}")
         {
             ForeColor = Color.FromArgb(166, 173, 200)
@@ -159,7 +201,7 @@ public class TrayIconService : IDisposable
         menuClear.Click += (_, _) => _scheduler.ClearWallpaper();
         menu.Items.Add(menuClear);
 
-        // 10. Settings...
+        // 11. Settings...
         var menuSettings = new ToolStripMenuItem($"⚙️ {LocalizationManager.Get("Menu_Settings")}")
         {
             ForeColor = Color.FromArgb(205, 214, 244)
@@ -169,7 +211,7 @@ public class TrayIconService : IDisposable
 
         menu.Items.Add(new ToolStripSeparator());
 
-        // 11. Exit
+        // 12. Exit
         var menuExit = new ToolStripMenuItem($"❌ {LocalizationManager.Get("Menu_Exit")}")
         {
             ForeColor = Color.FromArgb(243, 139, 168)
@@ -178,18 +220,46 @@ public class TrayIconService : IDisposable
         menu.Items.Add(menuExit);
     }
 
+    private static void ClearAndDisposeMenu(ContextMenuStrip menu)
+    {
+        for (int i = menu.Items.Count - 1; i >= 0; i--)
+        {
+            var item = menu.Items[i];
+            if (item is ToolStripDropDownItem dropDownItem && dropDownItem.HasDropDownItems)
+            {
+                ClearAndDisposeDropDownItems(dropDownItem);
+            }
+            item.Dispose();
+        }
+        menu.Items.Clear();
+    }
+
+    private static void ClearAndDisposeDropDownItems(ToolStripDropDownItem container)
+    {
+        for (int i = container.DropDownItems.Count - 1; i >= 0; i--)
+        {
+            var sub = container.DropDownItems[i];
+            if (sub is ToolStripDropDownItem subDrop && subDrop.HasDropDownItems)
+            {
+                ClearAndDisposeDropDownItems(subDrop);
+            }
+            sub.Dispose();
+        }
+        container.DropDownItems.Clear();
+    }
+
     private void SaveCurrentPictureAs()
     {
         var currentImg = _scheduler.GetCurrentActiveWallpaperPath();
         if (string.IsNullOrEmpty(currentImg) || !File.Exists(currentImg))
         {
-            System.Windows.MessageBox.Show("No active wallpaper to save.", "BackgroundSwitch", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+            MessageBox.Show(LocalizationManager.Get("Msg_NoActiveWallpaper"), LocalizationManager.Get("Msg_SaveTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
 
         var saveDialog = new Microsoft.Win32.SaveFileDialog
         {
-            Title = "Save Wallpaper As",
+            Title = LocalizationManager.Get("Msg_SaveTitle"),
             Filter = "JPEG Image (*.jpg)|*.jpg|PNG Image (*.png)|*.png|All Files (*.*)|*.*",
             FileName = $"Wallpaper_{DateTime.Now:yyyyMMdd_HHmmss}.jpg",
             InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures)
@@ -200,11 +270,12 @@ public class TrayIconService : IDisposable
             try
             {
                 File.Copy(currentImg, saveDialog.FileName, true);
-                System.Windows.MessageBox.Show("Wallpaper saved successfully!", "BackgroundSwitch", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+                MessageBox.Show(LocalizationManager.Get("Msg_SaveSuccess"), LocalizationManager.Get("Msg_SaveTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"Could not save image: {ex.Message}", "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                string errMsg = string.Format(LocalizationManager.Get("Msg_SaveError"), ex.Message);
+                MessageBox.Show(errMsg, LocalizationManager.Get("Msg_SaveTitle"), MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }
@@ -240,8 +311,39 @@ public class TrayIconService : IDisposable
         catch { }
     }
 
-    private static Icon CreateAppTrayIcon()
+    private static Icon LoadAppIcon()
     {
+        // 1. Try extracting associated icon from current PE process executable (Fastest & 100% accurate in dev and single-file publish)
+        try
+        {
+            var processPath = Environment.ProcessPath;
+            if (!string.IsNullOrEmpty(processPath) && File.Exists(processPath))
+            {
+                var assocIcon = Icon.ExtractAssociatedIcon(processPath);
+                if (assocIcon != null)
+                {
+                    return assocIcon;
+                }
+            }
+        }
+        catch { }
+
+        // 2. Try loading from WPF pack application resource stream
+        try
+        {
+            var resUri = new Uri("pack://application:,,,/app.ico", UriKind.Absolute);
+            var streamInfo = Application.GetResourceStream(resUri);
+            if (streamInfo != null)
+            {
+                using (streamInfo.Stream)
+                {
+                    return new Icon(streamInfo.Stream, 32, 32);
+                }
+            }
+        }
+        catch { }
+
+        // 3. Try loading from filesystem candidates
         try
         {
             var baseDir = AppDomain.CurrentDomain.BaseDirectory;
@@ -265,18 +367,16 @@ public class TrayIconService : IDisposable
                     {
                         using var img = new Bitmap(path);
                         var hIcon = img.GetHicon();
-                        return Icon.FromHandle(hIcon);
+                        try
+                        {
+                            using var temp = Icon.FromHandle(hIcon);
+                            return (Icon)temp.Clone();
+                        }
+                        finally
+                        {
+                            DestroyIcon(hIcon); // Explicitly release native Win32 GDI handle
+                        }
                     }
-                }
-            }
-
-            var resUri = new Uri("pack://application:,,,/app.ico", UriKind.Absolute);
-            var streamInfo = System.Windows.Application.GetResourceStream(resUri);
-            if (streamInfo != null)
-            {
-                using (streamInfo.Stream)
-                {
-                    return new Icon(streamInfo.Stream, 32, 32);
                 }
             }
         }
@@ -292,12 +392,27 @@ public class TrayIconService : IDisposable
     {
         if (!_disposed)
         {
+            _scheduler.OnPauseStateChanged -= _onPauseChangedHandler;
+            _scheduler.OnWallpaperChanged -= _onWallpaperChangedHandler;
+
             if (_trayIcon != null)
             {
                 _trayIcon.Visible = false;
+                if (_trayIcon.ContextMenuStrip != null)
+                {
+                    ClearAndDisposeMenu(_trayIcon.ContextMenuStrip);
+                    _trayIcon.ContextMenuStrip.Dispose();
+                }
                 _trayIcon.Dispose();
                 _trayIcon = null;
             }
+
+            if (_loadedIcon != null)
+            {
+                _loadedIcon.Dispose();
+                _loadedIcon = null;
+            }
+
             _disposed = true;
             GC.SuppressFinalize(this);
         }
