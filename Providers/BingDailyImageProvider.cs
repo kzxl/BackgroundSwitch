@@ -61,6 +61,19 @@ public class BingDailyImageProvider : BaseHttpImageProvider
                             var downloadedPath = await DownloadStreamToDiskAsync(fullImageUrl, targetFile, cancellationToken);
                             if (!string.IsNullOrEmpty(downloadedPath))
                             {
+                                string title = imgObj.TryGetProperty("title", out var tProp) ? tProp.GetString()?.Trim() ?? string.Empty : string.Empty;
+                                string copyright = imgObj.TryGetProperty("copyright", out var crProp) ? crProp.GetString()?.Trim() ?? string.Empty : string.Empty;
+                                string copyrightLink = imgObj.TryGetProperty("copyrightlink", out var clProp) ? clProp.GetString()?.Trim() ?? string.Empty : string.Empty;
+
+                                WallpaperMetadataManager.Instance.Register(new Models.WallpaperMetadata
+                                {
+                                    FilePath = downloadedPath,
+                                    Title = !string.IsNullOrEmpty(title) ? title : "Bing Daily Wallpaper",
+                                    Author = copyright,
+                                    SourceUrl = copyrightLink,
+                                    Provider = "BingDaily"
+                                });
+
                                 return downloadedPath;
                             }
                         }

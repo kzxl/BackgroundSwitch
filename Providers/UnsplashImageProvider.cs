@@ -49,7 +49,32 @@ public class UnsplashImageProvider : BaseHttpImageProvider
                     var imgUrl = fullUrlProp.GetString();
                     if (!string.IsNullOrEmpty(imgUrl) && !BlacklistManager.Instance.IsBlacklisted(imgUrl))
                     {
-                        return await DownloadAndCacheImageAsync(imgUrl, "Unsplash", cancellationToken);
+                        var downloaded = await DownloadAndCacheImageAsync(imgUrl, "Unsplash", cancellationToken);
+                        if (!string.IsNullOrEmpty(downloaded))
+                        {
+                            string title = root.TryGetProperty("alt_description", out var altDesc) && !string.IsNullOrWhiteSpace(altDesc.GetString())
+                                ? altDesc.GetString()!.Trim()
+                                : (root.TryGetProperty("description", out var desc) ? desc.GetString()?.Trim() ?? currentTopic : currentTopic);
+
+                            string author = root.TryGetProperty("user", out var userEl) && userEl.TryGetProperty("name", out var nameProp)
+                                ? nameProp.GetString()?.Trim() ?? "Unsplash Photographer"
+                                : "Unsplash Photographer";
+
+                            string photoPage = root.TryGetProperty("links", out var linksEl) && linksEl.TryGetProperty("html", out var htmlProp)
+                                ? htmlProp.GetString()?.Trim() ?? ""
+                                : "";
+
+                            WallpaperMetadataManager.Instance.Register(new WallpaperMetadata
+                            {
+                                FilePath = downloaded,
+                                Title = title,
+                                Author = author,
+                                SourceUrl = photoPage,
+                                Provider = "Unsplash"
+                            });
+
+                            return downloaded;
+                        }
                     }
                 }
             }

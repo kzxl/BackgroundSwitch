@@ -40,7 +40,7 @@ public class WallhavenImageProvider : BaseHttpImageProvider
 
             if (root.TryGetProperty("data", out var data) && data.GetArrayLength() > 0)
             {
-                var candidateUrls = new List<string>();
+                var candidates = new List<(string Url, string Title, string Author, string SourceUrl)>();
 
                 foreach (var item in data.EnumerateArray())
                 {
@@ -49,15 +49,32 @@ public class WallhavenImageProvider : BaseHttpImageProvider
                         var imgUrl = pathProp.GetString();
                         if (!string.IsNullOrEmpty(imgUrl) && !BlacklistManager.Instance.IsBlacklisted(imgUrl))
                         {
-                            candidateUrls.Add(imgUrl);
+                            string id = item.TryGetProperty("id", out var idProp) ? idProp.GetString() ?? "" : "";
+                            string uploader = item.TryGetProperty("uploader", out var upEl) && upEl.TryGetProperty("username", out var uProp) ? uProp.GetString() ?? "" : "Wallhaven Community";
+                            string pageUrl = item.TryGetProperty("url", out var urlEl) ? urlEl.GetString() ?? "" : $"https://wallhaven.cc/w/{id}";
+                            string title = !string.IsNullOrEmpty(currentTopic) ? $"Wallhaven #{id} ({currentTopic})" : $"Wallhaven #{id}";
+
+                            candidates.Add((imgUrl, title, uploader, pageUrl));
                         }
                     }
                 }
 
-                if (candidateUrls.Count > 0)
+                if (candidates.Count > 0)
                 {
-                    var selectedUrl = candidateUrls[_random.Next(candidateUrls.Count)];
-                    return await DownloadAndCacheImageAsync(selectedUrl, "Wallhaven", cancellationToken);
+                    var selected = candidates[_random.Next(candidates.Count)];
+                    var downloaded = await DownloadAndCacheImageAsync(selected.Url, "Wallhaven", cancellationToken);
+                    if (!string.IsNullOrEmpty(downloaded))
+                    {
+                        WallpaperMetadataManager.Instance.Register(new WallpaperMetadata
+                        {
+                            FilePath = downloaded,
+                            Title = selected.Title,
+                            Author = selected.Author,
+                            SourceUrl = selected.SourceUrl,
+                            Provider = "Wallhaven"
+                        });
+                        return downloaded;
+                    }
                 }
             }
         }

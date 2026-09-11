@@ -35,7 +35,7 @@ public class RedditImageProvider : BaseHttpImageProvider
 
             if (root.TryGetProperty("data", out var data) && data.TryGetProperty("children", out var children))
             {
-                var candidateUrls = new List<string>();
+                var candidates = new List<(string Url, string Title, string Author, string Permalink)>();
 
                 foreach (var child in children.EnumerateArray())
                 {
@@ -47,16 +47,32 @@ public class RedditImageProvider : BaseHttpImageProvider
                             var imgUrl = urlProp.GetString();
                             if (!string.IsNullOrEmpty(imgUrl) && IsDirectImageUrl(imgUrl) && !BlacklistManager.Instance.IsBlacklisted(imgUrl))
                             {
-                                candidateUrls.Add(imgUrl);
+                                string title = postData.TryGetProperty("title", out var tProp) ? tProp.GetString()?.Trim() ?? string.Empty : $"r/{activeSub}";
+                                string author = postData.TryGetProperty("author", out var aProp) ? $"u/{aProp.GetString()?.Trim()}" : string.Empty;
+                                string permalink = postData.TryGetProperty("permalink", out var pProp) ? $"https://reddit.com{pProp.GetString()}" : string.Empty;
+
+                                candidates.Add((imgUrl, title, author, permalink));
                             }
                         }
                     }
                 }
 
-                if (candidateUrls.Count > 0)
+                if (candidates.Count > 0)
                 {
-                    var selectedUrl = candidateUrls[_random.Next(candidateUrls.Count)];
-                    return await DownloadAndCacheImageAsync(selectedUrl, "Reddit", cancellationToken);
+                    var selected = candidates[_random.Next(candidates.Count)];
+                    var downloaded = await DownloadAndCacheImageAsync(selected.Url, "Reddit", cancellationToken);
+                    if (!string.IsNullOrEmpty(downloaded))
+                    {
+                        WallpaperMetadataManager.Instance.Register(new WallpaperMetadata
+                        {
+                            FilePath = downloaded,
+                            Title = selected.Title,
+                            Author = selected.Author,
+                            SourceUrl = selected.Permalink,
+                            Provider = $"Reddit (r/{activeSub})"
+                        });
+                        return downloaded;
+                    }
                 }
             }
         }

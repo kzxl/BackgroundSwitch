@@ -63,6 +63,8 @@ public class AppSettings
     public int IntervalMinutes { get; set; } = 15;
     public bool AutoStart { get; set; } = true;
     public string Language { get; set; } = "bilingual"; // "bilingual", "vi", "en"
+    public bool ShowWallpaperInfoOnDesktop { get; set; } = false; // Hiển thị tên ảnh và tác giả ở góc desktop
+    public bool ShowWallpaperInfoInApp { get; set; } = true;      // Hiển thị tên ảnh và tác giả trong app & toast
 
     // Nguồn ảnh chung khi ở chế độ Synced hoặc Span
     public ProviderConfig GlobalSource { get; set; } = new();

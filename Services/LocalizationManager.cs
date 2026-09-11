@@ -78,6 +78,8 @@ public static class LocalizationManager
         { "UI_IntervalLabel", ("Change Interval (Minutes):", "Tần suất đổi (Phút):") },
         { "UI_MinutesUnit", ("minutes", "phút") },
         { "UI_AutoStart", ("Start with Windows (100% silent & zero-flicker)", "Khởi động cùng Windows (Chạy ngầm 100% không chớp màn hình)") },
+        { "UI_ShowWallpaperInfoOnDesktop", ("Show photo title & author on Desktop (Spotlight watermark)", "Hiển thị tên ảnh & tác giả ở góc màn hình Desktop (Watermark tinh tế)") },
+        { "UI_ShowWallpaperInfoInApp", ("Show photo title & author in App and notifications", "Hiển thị thông tin tên ảnh & tác giả trong ứng dụng & thông báo") },
         { "UI_LanguageLabel", ("Language:", "Ngôn ngữ:") },
         { "UI_BlacklistInfo", ("Blacklisted Images:", "Số ảnh đã chặn (Blacklist):") },
         { "UI_ClearBlacklistBtn", ("🧹 Clear Blacklist", "🧹 Xóa danh sách chặn") },

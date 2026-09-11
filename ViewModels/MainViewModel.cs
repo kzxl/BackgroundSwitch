@@ -184,6 +184,10 @@ public class MainViewModel : ViewModelBase
             {
                 OnPropertyChanged(nameof(HasCurrentWallpaper));
                 OnPropertyChanged(nameof(CurrentWallpaperFileName));
+                OnPropertyChanged(nameof(CurrentWallpaperTitle));
+                OnPropertyChanged(nameof(CurrentWallpaperAuthor));
+                OnPropertyChanged(nameof(HasWallpaperAuthor));
+                OnPropertyChanged(nameof(CurrentWallpaperAuthorDisplay));
                 OnPropertyChanged(nameof(CurrentWallpaperDetails));
             }
         }
@@ -200,6 +204,38 @@ public class MainViewModel : ViewModelBase
         }
     }
 
+    public string CurrentWallpaperTitle
+    {
+        get
+        {
+            if (string.IsNullOrEmpty(CurrentWallpaperPath)) return "Chưa có hình nền";
+            var meta = WallpaperMetadataManager.Instance.GetMetadata(CurrentWallpaperPath);
+            if (meta != null && !string.IsNullOrWhiteSpace(meta.Title))
+            {
+                return meta.Title;
+            }
+            return Path.GetFileNameWithoutExtension(CurrentWallpaperPath);
+        }
+    }
+
+    public string CurrentWallpaperAuthor
+    {
+        get
+        {
+            if (string.IsNullOrEmpty(CurrentWallpaperPath)) return string.Empty;
+            var meta = WallpaperMetadataManager.Instance.GetMetadata(CurrentWallpaperPath);
+            if (meta != null && !string.IsNullOrWhiteSpace(meta.Author))
+            {
+                return meta.Author;
+            }
+            return string.Empty;
+        }
+    }
+
+    public bool HasWallpaperAuthor => !string.IsNullOrEmpty(CurrentWallpaperAuthor);
+
+    public string CurrentWallpaperAuthorDisplay => HasWallpaperAuthor ? $"📸 {CurrentWallpaperAuthor}" : string.Empty;
+
     public string CurrentWallpaperDetails
     {
         get
@@ -212,7 +248,9 @@ public class MainViewModel : ViewModelBase
             {
                 var fi = new FileInfo(CurrentWallpaperPath);
                 double sizeKb = fi.Length / 1024.0;
-                return $"Nguồn: {SourceType} | Kích thước: {sizeKb:F1} KB | Cập nhật: {fi.LastWriteTime:HH:mm:ss}";
+                var meta = WallpaperMetadataManager.Instance.GetMetadata(CurrentWallpaperPath);
+                string provider = !string.IsNullOrEmpty(meta?.Provider) ? meta.Provider : SourceType;
+                return $"Nguồn: {provider} | Kích thước: {sizeKb:F1} KB | Cập nhật: {fi.LastWriteTime:HH:mm:ss}";
             }
             catch
             {
@@ -456,6 +494,20 @@ public class MainViewModel : ViewModelBase
         set => SetProperty(ref _autoStart, value);
     }
 
+    private bool _showWallpaperInfoOnDesktop;
+    public bool ShowWallpaperInfoOnDesktop
+    {
+        get => _showWallpaperInfoOnDesktop;
+        set => SetProperty(ref _showWallpaperInfoOnDesktop, value);
+    }
+
+    private bool _showWallpaperInfoInApp = true;
+    public bool ShowWallpaperInfoInApp
+    {
+        get => _showWallpaperInfoInApp;
+        set => SetProperty(ref _showWallpaperInfoInApp, value);
+    }
+
     public string Language
     {
         get => _language;
@@ -549,6 +601,8 @@ public class MainViewModel : ViewModelBase
     public string IntervalLabelText => LocalizationManager.Get("UI_IntervalLabel");
     public string MinutesUnitText => LocalizationManager.Get("UI_MinutesUnit");
     public string AutoStartText => LocalizationManager.Get("UI_AutoStart");
+    public string ShowWallpaperInfoOnDesktopText => LocalizationManager.Get("UI_ShowWallpaperInfoOnDesktop");
+    public string ShowWallpaperInfoInAppText => LocalizationManager.Get("UI_ShowWallpaperInfoInApp");
     public string ClearBlacklistBtnText => LocalizationManager.Get("UI_ClearBlacklistBtn");
     public string SaveBtnText => LocalizationManager.Get("UI_SaveBtn");
 
@@ -589,6 +643,8 @@ public class MainViewModel : ViewModelBase
         OnPropertyChanged(nameof(IntervalLabelText));
         OnPropertyChanged(nameof(MinutesUnitText));
         OnPropertyChanged(nameof(AutoStartText));
+        OnPropertyChanged(nameof(ShowWallpaperInfoOnDesktopText));
+        OnPropertyChanged(nameof(ShowWallpaperInfoInAppText));
         OnPropertyChanged(nameof(ClearBlacklistBtnText));
         OnPropertyChanged(nameof(SaveBtnText));
         OnPropertyChanged(nameof(BlacklistCountText));
@@ -625,6 +681,8 @@ public class MainViewModel : ViewModelBase
         Scale = _settings.Scale;
         IntervalMinutes = Math.Max(1, _settings.IntervalMinutes);
         AutoStart = _settings.AutoStart;
+        ShowWallpaperInfoOnDesktop = _settings.ShowWallpaperInfoOnDesktop;
+        ShowWallpaperInfoInApp = _settings.ShowWallpaperInfoInApp;
 
         var source = _settings.GlobalSource;
         SourceType = string.IsNullOrWhiteSpace(source.Type) ? "Pexels" : source.Type;
@@ -658,6 +716,8 @@ public class MainViewModel : ViewModelBase
         _settings.Scale = Scale;
         _settings.IntervalMinutes = Math.Max(1, IntervalMinutes);
         _settings.AutoStart = AutoStart;
+        _settings.ShowWallpaperInfoOnDesktop = ShowWallpaperInfoOnDesktop;
+        _settings.ShowWallpaperInfoInApp = ShowWallpaperInfoInApp;
 
         _settings.GlobalSource.Type = SourceType;
         _settings.GlobalSource.RedditSubreddit = string.IsNullOrWhiteSpace(RedditSubreddit) ? "wallpapers" : RedditSubreddit.Trim();
@@ -771,7 +831,16 @@ public class MainViewModel : ViewModelBase
             if (success)
             {
                 CurrentWallpaperPath = _scheduler.GetCurrentActiveWallpaperPath();
-                ShowToast("Đã đổi hình nền thành công!", "Success");
+                var meta = WallpaperMetadataManager.Instance.GetMetadata(CurrentWallpaperPath);
+                if (ShowWallpaperInfoInApp && meta != null && !string.IsNullOrWhiteSpace(meta.Title))
+                {
+                    string authorPart = !string.IsNullOrWhiteSpace(meta.Author) ? $" • {meta.Author}" : "";
+                    ShowToast($"Đã đổi ảnh: {meta.DisplayTitle}{authorPart}", "Success");
+                }
+                else
+                {
+                    ShowToast("Đã đổi hình nền thành công!", "Success");
+                }
             }
             else
             {

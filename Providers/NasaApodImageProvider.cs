@@ -61,7 +61,22 @@ public class NasaApodImageProvider : BaseHttpImageProvider
 
                 if (!string.IsNullOrEmpty(imgUrl) && !BlacklistManager.Instance.IsBlacklisted(imgUrl))
                 {
-                    return await DownloadStreamToDiskAsync(imgUrl, cachedTodayFile, cancellationToken);
+                    var downloaded = await DownloadStreamToDiskAsync(imgUrl, cachedTodayFile, cancellationToken);
+                    if (!string.IsNullOrEmpty(downloaded))
+                    {
+                        string title = root.TryGetProperty("title", out var tProp) ? tProp.GetString()?.Trim() ?? string.Empty : "NASA APOD";
+                        string copyright = root.TryGetProperty("copyright", out var crProp) ? crProp.GetString()?.Trim() ?? string.Empty : "NASA / JPL";
+
+                        WallpaperMetadataManager.Instance.Register(new Models.WallpaperMetadata
+                        {
+                            FilePath = downloaded,
+                            Title = title,
+                            Author = copyright,
+                            SourceUrl = imgUrl,
+                            Provider = "NasaApod"
+                        });
+                        return downloaded;
+                    }
                 }
             }
         }

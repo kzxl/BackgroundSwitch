@@ -46,7 +46,7 @@ public class PexelsImageProvider : BaseHttpImageProvider
 
                 if (root.TryGetProperty("photos", out var photos) && photos.GetArrayLength() > 0)
                 {
-                    var candidates = new List<string>();
+                    var candidates = new List<(string Url, string Title, string Author, string PhotoUrl)>();
                     foreach (var photo in photos.EnumerateArray())
                     {
                         if (photo.TryGetProperty("src", out var src) && src.TryGetProperty("original", out var imgEl))
@@ -54,17 +54,31 @@ public class PexelsImageProvider : BaseHttpImageProvider
                             var imgUrl = imgEl.GetString();
                             if (!string.IsNullOrEmpty(imgUrl) && !BlacklistManager.Instance.IsBlacklisted(imgUrl))
                             {
-                                candidates.Add(imgUrl);
+                                string title = photo.TryGetProperty("alt", out var altProp) && !string.IsNullOrWhiteSpace(altProp.GetString())
+                                    ? altProp.GetString()!.Trim()
+                                    : currentTopic;
+                                string author = photo.TryGetProperty("photographer", out var authProp) ? authProp.GetString()?.Trim() ?? string.Empty : string.Empty;
+                                string photoUrl = photo.TryGetProperty("url", out var urlProp) ? urlProp.GetString()?.Trim() ?? string.Empty : string.Empty;
+
+                                candidates.Add((imgUrl, title, author, photoUrl));
                             }
                         }
                     }
 
                     if (candidates.Count > 0)
                     {
-                        var chosenUrl = candidates[_random.Next(candidates.Count)];
-                        var localPath = await DownloadAndCacheImageAsync(chosenUrl, "Pexels", cancellationToken);
+                        var chosen = candidates[_random.Next(candidates.Count)];
+                        var localPath = await DownloadAndCacheImageAsync(chosen.Url, "Pexels", cancellationToken);
                         if (!string.IsNullOrEmpty(localPath))
                         {
+                            WallpaperMetadataManager.Instance.Register(new WallpaperMetadata
+                            {
+                                FilePath = localPath,
+                                Title = chosen.Title,
+                                Author = chosen.Author,
+                                SourceUrl = chosen.PhotoUrl,
+                                Provider = "Pexels"
+                            });
                             return localPath;
                         }
                     }

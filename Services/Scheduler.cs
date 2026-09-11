@@ -152,7 +152,15 @@ public class Scheduler : IDisposable
                         var imgPath = await provider.GetNextImagePathAsync(token);
                         if (!string.IsNullOrEmpty(imgPath) && !token.IsCancellationRequested)
                         {
-                            bool ok = WallpaperManager.SetWallpaper(monId, imgPath);
+                            var meta = WallpaperMetadataManager.Instance.GetMetadata(imgPath);
+                            string applied = imgPath;
+
+                            if (_settings.ShowWallpaperInfoOnDesktop && meta != null)
+                            {
+                                applied = WallpaperWatermarkService.CreateWatermarkedWallpaper(imgPath, meta);
+                            }
+
+                            bool ok = WallpaperManager.SetWallpaper(monId, applied);
                             if (ok)
                             {
                                 CurrentWallpapers[monId] = imgPath;
@@ -174,7 +182,15 @@ public class Scheduler : IDisposable
 
                 if (!string.IsNullOrEmpty(imagePath) && !token.IsCancellationRequested)
                 {
-                    bool ok = WallpaperManager.SetWallpaper(null, imagePath);
+                    var meta = WallpaperMetadataManager.Instance.GetMetadata(imagePath);
+                    string applied = imagePath;
+
+                    if (_settings.ShowWallpaperInfoOnDesktop && meta != null)
+                    {
+                        applied = WallpaperWatermarkService.CreateWatermarkedWallpaper(imagePath, meta);
+                    }
+
+                    bool ok = WallpaperManager.SetWallpaper(null, applied);
                     if (ok)
                     {
                         CurrentWallpapers["global"] = imagePath;
@@ -250,7 +266,15 @@ public class Scheduler : IDisposable
 
         if (!string.IsNullOrEmpty(imgPath))
         {
-            WallpaperManager.SetWallpaper(monitor.MonitorId, imgPath);
+            var meta = WallpaperMetadataManager.Instance.GetMetadata(imgPath);
+            string applied = imgPath;
+
+            if (_settings.ShowWallpaperInfoOnDesktop && meta != null)
+            {
+                applied = WallpaperWatermarkService.CreateWatermarkedWallpaper(imgPath, meta);
+            }
+
+            WallpaperManager.SetWallpaper(monitor.MonitorId, applied);
             CurrentWallpapers[monitor.MonitorId] = imgPath;
             History.Push(imgPath);
             OnWallpaperChanged?.Invoke();
