@@ -162,4 +162,94 @@ public class LiveWallpaperService
         }
         return false;
     }
+
+    #region Managed Session Controller
+
+    private ZeroWall.Views.LiveWallpaperWindow? _activeWindow;
+    private System.Windows.Threading.DispatcherTimer? _monitorTimer;
+
+    public bool IsActive => _activeWindow != null;
+    public bool IsPaused { get; private set; }
+    public bool PauseOnFullscreen { get; set; } = true;
+    public bool PauseOnBattery { get; set; } = true;
+    public double Volume { get; set; } = 0.0;
+    public string? CurrentVideoPath { get; private set; }
+
+    public event Action<bool>? StateChanged;
+
+    public bool Start(string videoPath)
+    {
+        if (string.IsNullOrWhiteSpace(videoPath) || !System.IO.File.Exists(videoPath))
+            return false;
+
+        Stop();
+
+        CurrentVideoPath = videoPath;
+        _activeWindow = new ZeroWall.Views.LiveWallpaperWindow();
+        _activeWindow.Show();
+
+        var helper = new System.Windows.Interop.WindowInteropHelper(_activeWindow);
+        var primaryScreen = Screen.PrimaryScreen ?? Screen.AllScreens[0];
+
+        bool attached = AttachWindowToDesktop(
+            helper.Handle,
+            primaryScreen.Bounds.Left,
+            primaryScreen.Bounds.Top,
+            primaryScreen.Bounds.Width,
+            primaryScreen.Bounds.Height);
+
+        if (!attached)
+        {
+            _activeWindow.Close();
+            _activeWindow = null;
+            return false;
+        }
+
+        _activeWindow.OpenVideo(videoPath, Volume);
+
+        _monitorTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+        _monitorTimer.Tick += (_, _) =>
+        {
+            if (_activeWindow == null) return;
+
+            bool shouldPause = (PauseOnFullscreen && IsFullScreenAppActive()) ||
+                               (PauseOnBattery && IsRunningOnBattery());
+
+            if (shouldPause && !IsPaused)
+            {
+                IsPaused = true;
+                _activeWindow.Pause();
+                StateChanged?.Invoke(false);
+            }
+            else if (!shouldPause && IsPaused)
+            {
+                IsPaused = false;
+                _activeWindow.Play();
+                StateChanged?.Invoke(true);
+            }
+        };
+        _monitorTimer.Start();
+
+        StateChanged?.Invoke(true);
+        return true;
+    }
+
+    public void Stop()
+    {
+        _monitorTimer?.Stop();
+        _monitorTimer = null;
+
+        if (_activeWindow != null)
+        {
+            var helper = new System.Windows.Interop.WindowInteropHelper(_activeWindow);
+            DetachWindowFromDesktop(helper.Handle);
+            _activeWindow.Close();
+            _activeWindow = null;
+        }
+
+        IsPaused = false;
+        StateChanged?.Invoke(false);
+    }
+
+    #endregion
 }

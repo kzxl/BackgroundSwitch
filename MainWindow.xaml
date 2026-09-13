@@ -1,4 +1,4 @@
-﻿<Window x:Class="ZeroWall.MainWindow"
+<Window x:Class="ZeroWall.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:models="clr-namespace:ZeroWall.Models"
@@ -319,6 +319,7 @@
                 <RadioButton Content="{Binding NavSourcesText}" Style="{StaticResource NavTabStyle}" IsChecked="{Binding IsTabSources, Mode=OneWay}" Command="{Binding SelectTabCommand}" CommandParameter="0"/>
                 <RadioButton Content="{Binding NavDisplaysText}" Style="{StaticResource NavTabStyle}" IsChecked="{Binding IsTabDisplays, Mode=OneWay}" Command="{Binding SelectTabCommand}" CommandParameter="1"/>
                 <RadioButton Content="{Binding NavSettingsText}" Style="{StaticResource NavTabStyle}" IsChecked="{Binding IsTabSettings, Mode=OneWay}" Command="{Binding SelectTabCommand}" CommandParameter="2"/>
+                <RadioButton Content="🎬 Live Wallpaper" Style="{StaticResource NavTabStyle}" IsChecked="{Binding IsTabLiveVideo, Mode=OneWay}" Command="{Binding SelectTabCommand}" CommandParameter="3"/>
             </StackPanel>
         </Border>
 
@@ -907,6 +908,53 @@
                             <Button Content="{Binding ClearBlacklistBtnText}" Command="{Binding ClearBlacklistCommand}" Style="{StaticResource DangerButton}" Grid.Column="1" Width="180"/>
                         </Grid>
                     </Border>
+                </StackPanel>
+
+                <!-- ==================== TAB 3: LIVE VIDEO WALLPAPER ==================== -->
+                <StackPanel Visibility="{Binding IsTabLiveVideo, Converter={StaticResource BoolToVis}}" MaxWidth="850" HorizontalAlignment="Left">
+                    <!-- Intro Card -->
+                    <Border Background="{StaticResource BrushBgCard}" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1" CornerRadius="10" Padding="18" Margin="0,0,0,16">
+                        <StackPanel>
+                            <TextBlock Text="🎬 HÌNH NỀN VIDEO ĐỘNG (LIVE VIDEO WALLPAPER)" FontWeight="Bold" FontSize="14" Foreground="{StaticResource BrushPrimaryAccent}" Margin="0,0,0,6"/>
+                            <TextBlock Text="Phát video lặp vô tận mượt mà trực tiếp phía sau các biểu tượng Desktop (sử dụng Windows WorkerW DWM Native Engine)." FontSize="12.5" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,14" TextWrapping="Wrap"/>
+
+                            <!-- Video Picker -->
+                            <TextBlock Text="Tệp Video Nguồn (.mp4, .wmv, .mkv, .avi):" FontWeight="SemiBold" FontSize="12.5" Foreground="{StaticResource BrushTextPrimary}" Margin="0,0,0,6"/>
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox Text="{Binding LiveVideoPath, UpdateSourceTrigger=PropertyChanged}" FontSize="12.5" Padding="10,8"
+                                         Background="{StaticResource BrushBgInput}" Foreground="{StaticResource BrushTextPrimary}"
+                                         BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1"/>
+                                <Button Grid.Column="2" Content="📁 Duyệt Video..." Command="{Binding BrowseLiveVideoCommand}" Style="{StaticResource SecondaryButton}" Height="34"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Performance & Playback Options Card -->
+                    <Border Background="{StaticResource BrushBgCard}" BorderBrush="{StaticResource BrushBorderDefault}" BorderThickness="1" CornerRadius="10" Padding="18" Margin="0,0,0,16">
+                        <StackPanel>
+                            <TextBlock Text="⚡ TỐI ƯU HIỆU NĂNG &amp; TIẾT KIỆM PIN" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushSuccessAccent}" Margin="0,0,0,12"/>
+
+                            <CheckBox Content="Tự động tạm dừng video khi ứng dụng toàn màn hình đang chạy (chơi game, xem phim fullscreen)" 
+                                      IsChecked="{Binding LivePauseOnFullscreen, Mode=TwoWay}" Margin="0,0,0,10" FontSize="12.5"/>
+                            <CheckBox Content="Tự động tạm dừng video khi máy tính đang dùng pin (nguồn AC offline)" 
+                                      IsChecked="{Binding LivePauseOnBattery, Mode=TwoWay}" Margin="0,0,0,14" FontSize="12.5"/>
+
+                            <TextBlock Text="Âm lượng video:" FontSize="12.5" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,6"/>
+                            <Grid Width="320" HorizontalAlignment="Left">
+                                <Slider Minimum="0" Maximum="1" Value="{Binding LiveVolume, Mode=TwoWay}" SmallChange="0.05" LargeChange="0.1"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Control Action -->
+                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                        <Button Content="{Binding LiveWallpaperActionBtnText}" Command="{Binding ToggleLiveWallpaperCommand}" Style="{StaticResource PrimaryButton}" Height="40" Padding="24,8"/>
+                    </StackPanel>
                 </StackPanel>
             </Grid>
         </ScrollViewer>

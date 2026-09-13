@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
@@ -84,6 +84,8 @@ public class MainViewModel : ViewModelBase
     public ICommand OpenFavoritesFolderCommand { get; }
     public ICommand BlacklistCurrentWallpaperCommand { get; }
     public ICommand DismissStatusCommand { get; }
+    public ICommand BrowseLiveVideoCommand { get; }
+    public ICommand ToggleLiveWallpaperCommand { get; }
 
     public MainViewModel(AppSettings settings, Scheduler scheduler, Action requestCloseOrHide)
     {
@@ -157,6 +159,8 @@ public class MainViewModel : ViewModelBase
         BlacklistCurrentWallpaperCommand = new AsyncRelayCommand(BlacklistCurrentAsync);
         DismissStatusCommand = new RelayCommand(() => IsStatusVisible = false);
         TestSampleCommand = new AsyncRelayCommand(TestSampleAsync, () => !IsChangingWallpaper);
+        BrowseLiveVideoCommand = new RelayCommand(BrowseLiveVideo);
+        ToggleLiveWallpaperCommand = new RelayCommand(ToggleLiveWallpaper);
 
         // Setup 1-second countdown timer
         _countdownTimer = new System.Windows.Threading.DispatcherTimer
@@ -207,6 +211,7 @@ public class MainViewModel : ViewModelBase
                 OnPropertyChanged(nameof(IsTabSources));
                 OnPropertyChanged(nameof(IsTabDisplays));
                 OnPropertyChanged(nameof(IsTabSettings));
+                OnPropertyChanged(nameof(IsTabLiveVideo));
             }
         }
     }
@@ -214,6 +219,91 @@ public class MainViewModel : ViewModelBase
     public bool IsTabSources => SelectedTabIndex == 0;
     public bool IsTabDisplays => SelectedTabIndex == 1;
     public bool IsTabSettings => SelectedTabIndex == 2;
+    public bool IsTabLiveVideo => SelectedTabIndex == 3;
+
+    #endregion
+
+    #region Live Video Wallpaper Properties & Methods
+
+    private readonly LiveWallpaperService _liveWallpaper = new();
+    private string _liveVideoPath = string.Empty;
+    public string LiveVideoPath
+    {
+        get => _liveVideoPath;
+        set => SetProperty(ref _liveVideoPath, value);
+    }
+
+    private bool _isLiveWallpaperRunning;
+    public bool IsLiveWallpaperRunning
+    {
+        get => _isLiveWallpaperRunning;
+        set => SetProperty(ref _isLiveWallpaperRunning, value);
+    }
+
+    public bool LivePauseOnFullscreen
+    {
+        get => _liveWallpaper.PauseOnFullscreen;
+        set { _liveWallpaper.PauseOnFullscreen = value; OnPropertyChanged(); }
+    }
+
+    public bool LivePauseOnBattery
+    {
+        get => _liveWallpaper.PauseOnBattery;
+        set { _liveWallpaper.PauseOnBattery = value; OnPropertyChanged(); }
+    }
+
+    public double LiveVolume
+    {
+        get => _liveWallpaper.Volume;
+        set { _liveWallpaper.Volume = value; OnPropertyChanged(); }
+    }
+
+    public string LiveWallpaperActionBtnText => IsLiveWallpaperRunning ? "⏹ Dừng Live Wallpaper" : "▶ Áp Dụng Live Wallpaper";
+
+    private void BrowseLiveVideo()
+    {
+        using var dialog = new System.Windows.Forms.OpenFileDialog
+        {
+            Title = "Chọn video làm Live Wallpaper",
+            Filter = "Video Files (*.mp4;*.wmv;*.avi;*.mkv)|*.mp4;*.wmv;*.avi;*.mkv|All Files (*.*)|*.*"
+        };
+        if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+        {
+            LiveVideoPath = dialog.FileName;
+            ShowToast($"Đã chọn video: {Path.GetFileName(LiveVideoPath)}", "Info");
+        }
+    }
+
+    private void ToggleLiveWallpaper()
+    {
+        if (IsLiveWallpaperRunning)
+        {
+            _liveWallpaper.Stop();
+            IsLiveWallpaperRunning = false;
+            OnPropertyChanged(nameof(LiveWallpaperActionBtnText));
+            ShowToast("Đã dừng Live Video Wallpaper.", "Info");
+        }
+        else
+        {
+            if (string.IsNullOrWhiteSpace(LiveVideoPath) || !File.Exists(LiveVideoPath))
+            {
+                ShowToast("Vui lòng chọn video hợp lệ trước khi bắt đầu!", "Warning");
+                return;
+            }
+
+            bool ok = _liveWallpaper.Start(LiveVideoPath);
+            if (ok)
+            {
+                IsLiveWallpaperRunning = true;
+                OnPropertyChanged(nameof(LiveWallpaperActionBtnText));
+                ShowToast("🎬 Live Video Wallpaper đang chạy trên Desktop WorkerW!", "Success");
+            }
+            else
+            {
+                ShowToast("Không thể gắn video vào desktop WorkerW.", "Error");
+            }
+        }
+    }
 
     #endregion
 

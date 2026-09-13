@@ -1,0 +1,17 @@
+<Window x:Class="ZeroWall.Views.LiveWallpaperWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ZeroWall Live Wallpaper Canvas"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Background="Black">
+    <Grid>
+        <MediaElement x:Name="Player"
+                      LoadedBehavior="Manual"
+                      UnloadedBehavior="Stop"
+                      Stretch="UniformToFill"
+                      Volume="0"
+                      MediaEnded="Player_MediaEnded" />
+    </Grid>
+</Window>
