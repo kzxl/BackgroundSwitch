@@ -1,9 +1,9 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO;
 using System.Windows.Data;
 using System.Windows.Media.Imaging;
 
-namespace BackgroundSwitch.Common;
+namespace ZeroWall.Common;
 
 public class ImagePathToBitmapConverter : IValueConverter
 {

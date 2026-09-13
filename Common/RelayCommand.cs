@@ -1,6 +1,6 @@
-using System.Windows.Input;
+﻿using System.Windows.Input;
 
-namespace BackgroundSwitch.Common;
+namespace ZeroWall.Common;
 
 public class RelayCommand : ICommand
 {

@@ -1,9 +1,9 @@
-using System.IO;
+﻿using System.IO;
 using System.Net.Http;
 using System.Text.Json;
-using BackgroundSwitch.Services;
+using ZeroWall.Services;
 
-namespace BackgroundSwitch.Providers;
+namespace ZeroWall.Providers;
 
 public class NasaApodImageProvider : BaseHttpImageProvider
 {
@@ -18,7 +18,7 @@ public class NasaApodImageProvider : BaseHttpImageProvider
     {
         try
         {
-            var tempDir = Path.Combine(Path.GetTempPath(), "BackgroundSwitch", "NasaApod");
+            var tempDir = Path.Combine(Path.GetTempPath(), "ZeroWall", "NasaApod");
             if (!Directory.Exists(tempDir))
             {
                 Directory.CreateDirectory(tempDir);

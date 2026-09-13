@@ -1,15 +1,15 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using BackgroundSwitch.Services;
+using ZeroWall.Services;
 using Application = System.Windows.Application;
 using MessageBox = System.Windows.MessageBox;
 using MessageBoxButton = System.Windows.MessageBoxButton;
 using MessageBoxImage = System.Windows.MessageBoxImage;
 
-namespace BackgroundSwitch.Services;
+namespace ZeroWall.Services;
 
 public class TrayIconService : IDisposable
 {
@@ -299,7 +299,7 @@ public class TrayIconService : IDisposable
 
     public static void OpenCacheFolder()
     {
-        var cachePath = Path.Combine(Path.GetTempPath(), "BackgroundSwitch");
+        var cachePath = Path.Combine(Path.GetTempPath(), "ZeroWall");
         if (!Directory.Exists(cachePath))
         {
             Directory.CreateDirectory(cachePath);

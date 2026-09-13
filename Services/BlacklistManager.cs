@@ -1,7 +1,7 @@
-using System.IO;
+﻿using System.IO;
 using System.Text.Json;
 
-namespace BackgroundSwitch.Services;
+namespace ZeroWall.Services;
 
 public class BlacklistManager
 {
@@ -111,6 +111,6 @@ public class BlacklistManager
 
     private static string GetBlacklistFilePath()
     {
-        return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "BackgroundSwitch", "blacklist.json");
+        return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ZeroWall", "blacklist.json");
     }
 }

@@ -1,8 +1,8 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.IO;
-using BackgroundSwitch.Models;
+using ZeroWall.Models;
 
-namespace BackgroundSwitch.Services;
+namespace ZeroWall.Services;
 
 public class WallpaperMetadataManager
 {

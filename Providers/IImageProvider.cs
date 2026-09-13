@@ -1,4 +1,4 @@
-namespace BackgroundSwitch.Providers;
+﻿namespace ZeroWall.Providers;
 
 public interface IImageProvider
 {

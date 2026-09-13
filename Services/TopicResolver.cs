@@ -1,7 +1,7 @@
-using System.Collections.Concurrent;
-using BackgroundSwitch.Models;
+﻿using System.Collections.Concurrent;
+using ZeroWall.Models;
 
-namespace BackgroundSwitch.Services;
+namespace ZeroWall.Services;
 
 public static class TopicResolver
 {

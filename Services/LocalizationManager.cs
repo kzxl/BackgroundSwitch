@@ -1,6 +1,6 @@
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
-namespace BackgroundSwitch.Services;
+namespace ZeroWall.Services;
 
 public enum AppLanguage
 {
@@ -225,7 +225,7 @@ public static class LocalizationManager
     /// <summary>
     /// Thuật toán định dạng song ngữ chuẩn (Bilingual):
     /// - Chỉ giữ 1 icon/emoji đại diện ở đầu chuỗi (không lặp icon)
-    /// - Tách tiền tố chung nếu có (ví dụ: "BackgroundSwitch — ", "Fill — ") để không bị lặp từ
+    /// - Tách tiền tố chung nếu có (ví dụ: "ZeroWall — ", "Fill — ") để không bị lặp từ
     /// - Không lặp từ nếu tiếng Anh và tiếng Việt giống nhau
     /// - Xử lý thông minh phần chú thích trong ngoặc đơn (...)
     /// - Định dạng thanh lịch "Tiếng Việt (English)" cho label/button ngắn
@@ -264,7 +264,7 @@ public static class LocalizationManager
             return $"{emoji}{cleanVi}".Trim();
         }
 
-        // 2. Tách tiền tố chung nếu cả 2 cùng có dạng "Prefix — " (vd: "BackgroundSwitch — ", "Fill — ")
+        // 2. Tách tiền tố chung nếu cả 2 cùng có dạng "Prefix — " (vd: "ZeroWall — ", "Fill — ")
         string commonPrefix = "";
         int dashVi = cleanVi.IndexOf(" — ");
         int dashEn = cleanEn.IndexOf(" — ");

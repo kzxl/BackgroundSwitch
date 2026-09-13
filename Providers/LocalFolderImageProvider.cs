@@ -1,7 +1,7 @@
-using System.IO;
-using BackgroundSwitch.Services;
+﻿using System.IO;
+using ZeroWall.Services;
 
-namespace BackgroundSwitch.Providers;
+namespace ZeroWall.Providers;
 
 public class LocalFolderImageProvider : IImageProvider
 {

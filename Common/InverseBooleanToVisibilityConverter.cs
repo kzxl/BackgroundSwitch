@@ -1,8 +1,8 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 
-namespace BackgroundSwitch.Common;
+namespace ZeroWall.Common;
 
 public class InverseBooleanToVisibilityConverter : IValueConverter
 {

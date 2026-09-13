@@ -1,11 +1,11 @@
-using System.Drawing;
+﻿using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using BackgroundSwitch.Models;
+using ZeroWall.Models;
 using Microsoft.Win32;
 
-namespace BackgroundSwitch.Services;
+namespace ZeroWall.Services;
 
 public class MonitorInfoItem
 {

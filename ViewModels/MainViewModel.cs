@@ -1,17 +1,17 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
-using BackgroundSwitch.Common;
-using BackgroundSwitch.Models;
-using BackgroundSwitch.Providers;
-using BackgroundSwitch.Services;
+using ZeroWall.Common;
+using ZeroWall.Models;
+using ZeroWall.Providers;
+using ZeroWall.Services;
 using Microsoft.Win32;
 using Application = System.Windows.Application;
 
-namespace BackgroundSwitch.ViewModels;
+namespace ZeroWall.ViewModels;
 
 public class MainViewModel : ViewModelBase
 {
@@ -1032,7 +1032,7 @@ public class MainViewModel : ViewModelBase
     private void ClearBlacklist()
     {
         var confirmMsg = LocalizationManager.Get("Msg_ClearBlacklistConfirm");
-        var result = System.Windows.MessageBox.Show(confirmMsg, "BackgroundSwitch", MessageBoxButton.YesNo, MessageBoxImage.Question);
+        var result = System.Windows.MessageBox.Show(confirmMsg, "ZeroWall", MessageBoxButton.YesNo, MessageBoxImage.Question);
         if (result == MessageBoxResult.Yes)
         {
             BlacklistManager.Instance.Clear();
@@ -1282,7 +1282,7 @@ public class MainViewModel : ViewModelBase
             using var rk = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true);
             if (rk == null) return;
 
-            const string appName = "BackgroundSwitch";
+            const string appName = "ZeroWall";
             var processPath = Environment.ProcessPath;
 
             if (string.IsNullOrEmpty(processPath)) return;

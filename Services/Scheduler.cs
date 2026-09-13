@@ -1,10 +1,10 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
-using BackgroundSwitch.Models;
-using BackgroundSwitch.Providers;
+using ZeroWall.Models;
+using ZeroWall.Providers;
 
-namespace BackgroundSwitch.Services;
+namespace ZeroWall.Services;
 
 public class Scheduler : IDisposable
 {

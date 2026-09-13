@@ -12,7 +12,9 @@
     <AssemblyVersion>2.0.0.0</AssemblyVersion>
     <FileVersion>2.0.0.0</FileVersion>
     <Authors>kzxl</Authors>
-    <Product>BackgroundSwitch</Product>
+    <RootNamespace>ZeroWall</RootNamespace>
+    <AssemblyName>ZeroWall</AssemblyName>
+    <Product>ZeroWall</Product>
     <Description>Modern Windows desktop wallpaper switcher with per-monitor rotation, 7 curated online sources, and ZeroUI dark theme.</Description>
   </PropertyGroup>
 

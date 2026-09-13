@@ -1,9 +1,9 @@
 using System.IO;
 using System.Net.Http;
 using System.Text.Json;
-using BackgroundSwitch.Services;
+using ZeroWall.Services;
 
-namespace BackgroundSwitch.Providers;
+namespace ZeroWall.Providers;
 
 public class BingDailyImageProvider : BaseHttpImageProvider
 {
@@ -11,7 +11,7 @@ public class BingDailyImageProvider : BaseHttpImageProvider
     {
         try
         {
-            var tempDir = Path.Combine(Path.GetTempPath(), "BackgroundSwitch", "BingDaily");
+            var tempDir = Path.Combine(Path.GetTempPath(), "ZeroWall", "BingDaily");
             if (!Directory.Exists(tempDir))
             {
                 Directory.CreateDirectory(tempDir);

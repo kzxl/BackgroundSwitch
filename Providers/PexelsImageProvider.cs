@@ -1,9 +1,9 @@
-using System.Net.Http;
+﻿using System.Net.Http;
 using System.Text.Json;
-using BackgroundSwitch.Models;
-using BackgroundSwitch.Services;
+using ZeroWall.Models;
+using ZeroWall.Services;
 
-namespace BackgroundSwitch.Providers;
+namespace ZeroWall.Providers;
 
 public class PexelsImageProvider : BaseHttpImageProvider
 {

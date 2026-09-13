@@ -1,7 +1,7 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace BackgroundSwitch.Common;
+namespace ZeroWall.Common;
 
 public abstract class ViewModelBase : INotifyPropertyChanged
 {

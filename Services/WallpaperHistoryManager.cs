@@ -1,4 +1,4 @@
-namespace BackgroundSwitch.Services;
+﻿namespace ZeroWall.Services;
 
 public class WallpaperHistoryManager
 {

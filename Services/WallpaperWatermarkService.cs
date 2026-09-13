@@ -1,15 +1,15 @@
-using System.Drawing;
+﻿using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Drawing.Text;
 using System.IO;
-using BackgroundSwitch.Models;
+using ZeroWall.Models;
 
-namespace BackgroundSwitch.Services;
+namespace ZeroWall.Services;
 
 public static class WallpaperWatermarkService
 {
-    private static readonly string OverlayDir = Path.Combine(Path.GetTempPath(), "BackgroundSwitch", "DesktopOverlays");
+    private static readonly string OverlayDir = Path.Combine(Path.GetTempPath(), "ZeroWall", "DesktopOverlays");
 
     static WallpaperWatermarkService()
     {

@@ -1,8 +1,8 @@
-using System.IO;
+﻿using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace BackgroundSwitch.Models;
+namespace ZeroWall.Models;
 
 public enum WallpaperMode
 {
@@ -75,7 +75,7 @@ public class AppSettings
         {
             return FavoritesFolderPath;
         }
-        var defaultFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "BackgroundSwitch Wallpapers");
+        var defaultFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "ZeroWall Wallpapers");
         if (!Directory.Exists(defaultFolder))
         {
             try { Directory.CreateDirectory(defaultFolder); } catch { }
@@ -176,6 +176,6 @@ public class AppSettings
 
     private static string GetSettingsPath()
     {
-        return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "BackgroundSwitch", "settings.json");
+        return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ZeroWall", "settings.json");
     }
 }

@@ -1,4 +1,4 @@
-namespace BackgroundSwitch.Models;
+﻿namespace ZeroWall.Models;
 
 public class WallpaperMetadata
 {

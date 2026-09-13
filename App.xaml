@@ -1,7 +1,7 @@
-<Application x:Class="BackgroundSwitch.App"
+﻿<Application x:Class="ZeroWall.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:BackgroundSwitch">
+             xmlns:local="clr-namespace:ZeroWall">
     <Application.Resources>
          
     </Application.Resources>

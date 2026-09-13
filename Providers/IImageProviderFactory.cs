@@ -1,6 +1,6 @@
-using BackgroundSwitch.Models;
+﻿using ZeroWall.Models;
 
-namespace BackgroundSwitch.Providers;
+namespace ZeroWall.Providers;
 
 public interface IImageProviderFactory
 {

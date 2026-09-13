@@ -1,8 +1,8 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Windows;
-using BackgroundSwitch.ViewModels;
+using ZeroWall.ViewModels;
 
-namespace BackgroundSwitch;
+namespace ZeroWall;
 
 public partial class MainWindow : Window
 {

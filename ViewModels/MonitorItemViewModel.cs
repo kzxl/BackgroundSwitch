@@ -1,12 +1,12 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
 using System.Windows.Input;
-using BackgroundSwitch.Common;
-using BackgroundSwitch.Models;
-using BackgroundSwitch.Services;
+using ZeroWall.Common;
+using ZeroWall.Models;
+using ZeroWall.Services;
 
-namespace BackgroundSwitch.ViewModels;
+namespace ZeroWall.ViewModels;
 
 public class MonitorItemViewModel : ViewModelBase
 {

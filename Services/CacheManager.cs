@@ -1,8 +1,8 @@
-using System.IO;
+﻿using System.IO;
 using System.Text.RegularExpressions;
-using BackgroundSwitch.Models;
+using ZeroWall.Models;
 
-namespace BackgroundSwitch.Services;
+namespace ZeroWall.Services;
 
 public class CacheStats
 {
@@ -14,7 +14,7 @@ public class CacheStats
 
 public static class CacheManager
 {
-    public static readonly string RootTempDirectory = Path.Combine(Path.GetTempPath(), "BackgroundSwitch");
+    public static readonly string RootTempDirectory = Path.Combine(Path.GetTempPath(), "ZeroWall");
 
     /// <summary>
     /// Giới hạn số lượng file trong thư mục theo cơ chế cuốn chiếu FIFO (First-In, First-Out).
@@ -74,7 +74,7 @@ public static class CacheManager
     }
 
     /// <summary>
-    /// Thống kê tổng dung lượng và số lượng ảnh trong toàn bộ thư mục tạm BackgroundSwitch.
+    /// Thống kê tổng dung lượng và số lượng ảnh trong toàn bộ thư mục tạm ZeroWall.
     /// </summary>
     public static CacheStats GetCacheStats()
     {

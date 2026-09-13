@@ -1,9 +1,9 @@
-using System.IO;
+﻿using System.IO;
 using System.Net;
 using System.Net.Http;
-using BackgroundSwitch.Services;
+using ZeroWall.Services;
 
-namespace BackgroundSwitch.Providers;
+namespace ZeroWall.Providers;
 
 public abstract class BaseHttpImageProvider : IImageProvider
 {
@@ -27,7 +27,7 @@ public abstract class BaseHttpImageProvider : IImageProvider
             return null;
         }
 
-        var tempDir = Path.Combine(Path.GetTempPath(), "BackgroundSwitch", subFolder);
+        var tempDir = Path.Combine(Path.GetTempPath(), "ZeroWall", subFolder);
         if (!Directory.Exists(tempDir))
         {
             Directory.CreateDirectory(tempDir);

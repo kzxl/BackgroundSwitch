@@ -1,9 +1,9 @@
-using System.Net.Http;
+﻿using System.Net.Http;
 using System.Text.Json;
-using BackgroundSwitch.Models;
-using BackgroundSwitch.Services;
+using ZeroWall.Models;
+using ZeroWall.Services;
 
-namespace BackgroundSwitch.Providers;
+namespace ZeroWall.Providers;
 
 public class RedditImageProvider : BaseHttpImageProvider
 {
@@ -24,7 +24,7 @@ public class RedditImageProvider : BaseHttpImageProvider
             var activeSub = TopicResolver.ResolveTopic(_rawSubreddit, _topicMode, "Reddit", "wallpapers").TrimStart('r', '/');
             string url = $"https://www.reddit.com/r/{Uri.EscapeDataString(activeSub)}/hot.json?limit=50";
             using var request = new HttpRequestMessage(HttpMethod.Get, url);
-            request.Headers.Add("User-Agent", "BackgroundSwitch/1.0 (Windows NT 10.0; Win64; x64)");
+            request.Headers.Add("User-Agent", "ZeroWall/1.0 (Windows NT 10.0; Win64; x64)");
 
             using var response = await SharedHttpClient.SendAsync(request, cancellationToken);
             response.EnsureSuccessStatusCode();
