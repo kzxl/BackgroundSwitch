@@ -227,7 +227,7 @@
                     <Image Source="assets/app_icon.png" Width="26" Height="26" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <StackPanel VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="BackgroundSwitch" FontSize="18" FontWeight="Bold" Foreground="{StaticResource BrushTextPrimary}"/>
+                            <TextBlock Text="ZeroWall" FontSize="18" FontWeight="Bold" Foreground="{StaticResource BrushTextPrimary}"/>
                             <Border Background="#2A2F4A" CornerRadius="4" Padding="6,2" Margin="8,0,0,0" VerticalAlignment="Center">
                                 <TextBlock Text="v2.0 MVVM" FontSize="10.5" FontWeight="Bold" Foreground="{StaticResource BrushPrimaryAccent}"/>
                             </Border>
