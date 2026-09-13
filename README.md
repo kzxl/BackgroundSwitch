@@ -1,11 +1,11 @@
-# BackgroundSwitch
+# 🌌 ZeroWall — Dynamic Multi-Monitor Wallpaper Studio
 
 <p align="center">
-  <img src="assets/app_icon.png" width="96" height="96" alt="BackgroundSwitch Logo" />
+  <img src="assets/app_icon.png" width="96" height="96" alt="ZeroWall Logo" />
 </p>
 
 <p align="center">
-  <strong>Modern, high-performance Windows desktop wallpaper rotator with per-monitor management, rich curated online providers, frosted glass photo metadata watermarking, and dynamic scheduling.</strong>
+  <strong>Modern, high-performance Windows desktop wallpaper orchestrator with per-monitor management, rich curated online providers, frosted glass photo metadata watermarking, and dynamic scheduling.</strong>
 </p>
 
 <p align="center">
@@ -16,6 +16,12 @@
   <img src="https://img.shields.io/badge/Engine-SkiaSharp%202.88-EA4335?style=flat-square" alt="SkiaSharp" />
   <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License" />
 </p>
+
+---
+
+## 📖 Overview
+
+**ZeroWall** is a precision wallpaper management studio engineered for multi-monitor setups and aesthetic desktops. Part of the sovereign **ZeroUniverse** application suite, it couples direct Win32 COM `IDesktopWallpaper` topology control with hardware-accelerated SkiaSharp metadata rendering and curated online art providers.
 
 ---
 
@@ -65,7 +71,7 @@
 ## 🏗️ Architecture
 
 ```
-BackgroundSwitch/
+ZeroWall/
 ├── Assets/                 # High-resolution icons and branding assets
 ├── Common/                 # WPF Converters, RelayCommands, AsyncRelayCommand
 ├── Models/                 # Configuration, Monitor info, Metadata, Enums
@@ -99,8 +105,8 @@ BackgroundSwitch/
 
 ```bash
 # Clone the repository
-git clone https://github.com/kzxl/BackgroundSwitch.git
-cd BackgroundSwitch
+git clone https://github.com/kzxl/ZeroWall.git
+cd ZeroWall
 
 # Run development build
 dotnet run
@@ -110,7 +116,7 @@ dotnet run
 
 ## 📦 Publishing & Deployment
 
-BackgroundSwitch supports two deployment options:
+ZeroWall supports two deployment options:
 
 ### 1. Lite (Framework-Dependent Single File)
 Requires .NET 8 Desktop Runtime installed on the machine. Small footprint (~15MB).
@@ -126,9 +132,8 @@ Standalone executable. Can be copied and run on any modern Windows 64-bit PC wit
 dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o ./publish/full
 ```
 
-
 ---
 
 ## 📄 License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the [MIT License](LICENSE). Part of the **ZeroUniverse** ecosystem.
