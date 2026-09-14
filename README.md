@@ -9,13 +9,15 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/.NET-8.0%20WPF-512BD4?style=flat-square&logo=dotnet" alt=".NET 8.0 WPF" />
-  <img src="https://img.shields.io/badge/C%23-13-239120?style=flat-square&logo=c-sharp" alt="C# 13" />
-  <img src="https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6?style=flat-square&logo=windows" alt="Windows 10 / 11" />
+  <img src="https://img.shields.io/badge/Type-Desktop%20Application-007ACC?style=flat-square&logo=windows" alt="Type: Desktop App" />
+  <img src="https://img.shields.io/badge/Ecosystem-ZeroUniverse-8A2BE2?style=flat-square" alt="ZeroUniverse" />
+  <img src="https://img.shields.io/badge/Platform-Windows%20x64-0078D6?style=flat-square&logo=windows" alt="Windows x64" />
+  <img src="https://img.shields.io/badge/Distribution-Standalone%20Single--File-2ea44f?style=flat-square" alt="Distribution: Standalone Single-File" />
+  <img src="https://img.shields.io/badge/.NET-10.0%20WPF-512BD4?style=flat-square&logo=dotnet" alt=".NET 10.0 WPF" />
   <img src="https://img.shields.io/badge/UI-ZeroUI%20Dark%20Theme-6366F1?style=flat-square" alt="ZeroUI Dark Theme" />
-  <img src="https://img.shields.io/badge/Engine-SkiaSharp%202.88-EA4335?style=flat-square" alt="SkiaSharp" />
   <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License" />
 </p>
+
 
 ---
 
